@@ -125,8 +125,8 @@
         <h2 style="color: #D4AF37; margin-bottom: 10px;">Вывод средств</h2>
         <div style="font-size: 12px; color: #aaa; margin-bottom: 15px;">Для проверки холда привяжите кошелек TON, с которого покупали NEXA.</div>
         
-        <div id="ton-connect" style="display: flex; justify-content: center; margin-bottom: 5px;"></div>
-        <button class="btn-red" onclick="unlinkWallet()" style="margin-bottom: 15px;">Отвязать кошелек</button>
+        <!-- Убрали колхозную кнопку -->
+        <div id="ton-connect" style="display: flex; justify-content: center; margin-bottom: 15px;"></div>
 
         <div class="input-group">
             <label>Куда вывести NEXA? (Введите адрес)</label>
@@ -238,6 +238,15 @@
             if(tabId === 'history') loadAllHistory();
         }
 
+        // Функция для копирования адреса
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                tg.showAlert("Адрес скопирован!");
+            }).catch(() => {
+                tg.showAlert("Ошибка копирования. Выделите текст вручную.");
+            });
+        }
+
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: window.location.origin + '/tonconnect-manifest.json',
             buttonRootId: 'ton-connect'
@@ -254,13 +263,6 @@
                 fetch(API_URL + '/api/unlink_wallet', { method: 'POST', headers: HEADERS }).then(() => loadData());
             }
         });
-
-        // Кнопка ручной отвязки
-        async function unlinkWallet() {
-            if(confirm('Отвязать кошелек? Холд обнулится.')) {
-                await tonConnectUI.disconnect();
-            }
-        }
 
         async function loadData() {
             try {
@@ -368,10 +370,14 @@
             let data = await res.json();
             let html = '';
             data.forEach(w => {
+                // ДОБАВИЛИ КОПИРОВАНИЕ АДРЕСА
                 html += `<div class="user-card">
                     <div class="user-info-row"><span>ID юзера:</span><span>${w.user_id}</span></div>
                     <div class="user-info-row"><span>Сумма:</span><span>${w.amount} NEXA</span></div>
-                    <div class="user-info-row"><span style="color:#D4AF37;">Куда вывести:</span><span style="color:#D4AF37; font-size:11px;">${w.wallet}</span></div>
+                    <div class="user-info-row" onclick="copyText('${w.wallet}')" style="cursor:pointer;" title="Нажмите чтобы скопировать">
+                        <span style="color:#D4AF37;">Куда вывести (нажми):</span>
+                        <span style="color:#D4AF37; font-size:11px; text-decoration:underline;">${w.wallet}</span>
+                    </div>
                     <div style="margin-top: 10px; display:flex; gap: 10px;">
                         <button class="btn-gold" onclick="adminAction(${w.id}, 'approve')">✅ Выплатить</button>
                         <button class="btn-red" onclick="adminAction(${w.id}, 'reject')">❌ Отклонить</button>
@@ -389,9 +395,10 @@
             data.forEach(w => {
                 let st = w.status === 'pending' ? 'Ожидает' : (w.status === 'approved' ? 'Выплачено' : 'Отклонено');
                 let stColor = w.status === 'pending' ? '#f1c40f' : (w.status === 'approved' ? '#2ecc71' : '#e74c3c');
+                // ДОБАВИЛИ КОПИРОВАНИЕ В ИСТОРИИ
                 html += `<div class="history-item" style="flex-direction:column; align-items:flex-start;">
                     <div style="color:#D4AF37; font-weight:bold; margin-bottom:5px;">ID: ${w.user_id}</div>
-                    <div style="font-size:10px; color:#aaa; margin-bottom:5px;">${w.date} | Адрес: ${w.wallet}</div>
+                    <div onclick="copyText('${w.wallet}')" style="font-size:10px; color:#aaa; margin-bottom:5px; cursor:pointer; text-decoration:underline;" title="Нажмите чтобы скопировать">${w.date} | Адрес: ${w.wallet}</div>
                     <div style="display:flex; justify-content:space-between; width:100%;">
                         <span>${w.amount} NEXA</span>
                         <span style="color:${stColor}; font-weight:bold;">${st}</span>
@@ -446,7 +453,7 @@
         async function resetWallet(id) {
             if(!confirm('Вы уверены, что хотите отвязать кошелек у этого юзера?')) return;
             await fetch(API_URL + '/api/admin/reset_wallet', { method: 'POST', headers: HEADERS, body: JSON.stringify({ target_id: id }) });
-            searchUser();
+            searchUser(); // Обновляем карточку сразу
         }
 
         async function editBalance(id, isAdd) {
