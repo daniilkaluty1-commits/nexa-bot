@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Header, Request
-from backend.database import SessionLocal, User, Withdrawal, Setting
+from backend.database import SessionLocal, User, Withdrawal, Setting, ReferralEarning
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime
@@ -72,9 +72,9 @@ def verify_telegram_data(init_data: str):
         secret_key = hmac.new(b"WebAppData", BOT_TOKEN.encode(), hashlib.sha256).digest()
         calculated_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
         if calculated_hash == hash_str:
-            return json.loads(parsed_data["user"])
+            return json.loads(parsed_data["user"]), parsed_data.get("start_param")
     except: pass
-    return None
+    return None, None
 
 class WalletRequest(BaseModel): wallet: str
 class WithdrawRequest(BaseModel): amount: float; withdraw_wallet: str 
@@ -86,7 +86,7 @@ class AdminResetWallet(BaseModel): target_id: int
 
 @app.post("/api/login")
 def login(request: Request, x_init_data: str = Header(None)):
-    tg_data = verify_telegram_data(x_init_data)
+    tg_data, start_param = verify_telegram_data(x_init_data)
     if not tg_data: raise HTTPException(status_code=401, detail="Auth error")
     
     user_id = tg_data["id"]
@@ -98,21 +98,29 @@ def login(request: Request, x_init_data: str = Header(None)):
     is_main_admin = str(user_id) == str(ADMIN_ID)
 
     if not user:
-        user = User(id=user_id, username=username, ip_address=ip, is_admin=is_main_admin)
+        # Обработка реферальной ссылки при первом входе
+        ref_id = None
+        if start_param and start_param.isdigit():
+            ref_id = int(start_param)
+            if ref_id == user_id: ref_id = None # Нельзя пригласить себя
+            
+        user = User(id=user_id, username=username, ip_address=ip, is_admin=is_main_admin, referrer_id=ref_id)
         db.add(user)
     else:
         user.ip_address = ip
         if username: user.username = username
         if is_main_admin: user.is_admin = True
     
+    # БЛОКИРОВКА (выдаст 403, фронт перехватит)
     if user.is_banned: 
         db.close()
-        raise HTTPException(status_code=403, detail="Вы забанены")
+        raise HTTPException(status_code=403, detail="banned")
     
     settings = db.query(Setting).first()
+    # ТЕХ РАБОТЫ (кроме админа)
     if settings.maintenance and not user.is_admin:
         db.close()
-        raise HTTPException(status_code=403, detail="На ферме технические работы. Зайдите позже.")
+        raise HTTPException(status_code=403, detail="maintenance")
     
     real_balance = get_real_wallet_balance(user.wallet_address)
     new_level = int(real_balance / 50000) + 1
@@ -140,7 +148,9 @@ def login(request: Request, x_init_data: str = Header(None)):
 
 @app.post("/api/start_farm")
 def start_farm(x_init_data: str = Header(None)):
-    user_id = verify_telegram_data(x_init_data)["id"]
+    tg_data, _ = verify_telegram_data(x_init_data)
+    if not tg_data: raise HTTPException(status_code=401)
+    user_id = tg_data["id"]
     db = SessionLocal()
     settings = db.query(Setting).first()
     if settings.maintenance: 
@@ -156,15 +166,28 @@ def start_farm(x_init_data: str = Header(None)):
 
 @app.post("/api/claim")
 def claim(x_init_data: str = Header(None)):
-    user_id = verify_telegram_data(x_init_data)["id"]
+    tg_data, _ = verify_telegram_data(x_init_data)
+    if not tg_data: raise HTTPException(status_code=401)
+    user_id = tg_data["id"]
     db = SessionLocal()
     settings = db.query(Setting).first()
     user = db.query(User).filter(User.id == user_id).first()
+    
     if user.is_farming:
         elapsed = (datetime.utcnow() - user.start_time).total_seconds()
         if elapsed > 28800: elapsed = 28800
         multiplier = 1.0 + (user.level - 1) * settings.level_bonus
-        user.balance += elapsed * settings.base_income * multiplier
+        earned = elapsed * settings.base_income * multiplier
+        user.balance += earned
+        
+        # НАЧИСЛЕНИЕ РЕФЕРАЛУ (10% от нафармленного)
+        if user.referrer_id:
+            ref_earn = earned * 0.10
+            referrer = db.query(User).filter(User.id == user.referrer_id).first()
+            if referrer:
+                referrer.balance += ref_earn
+                db.add(ReferralEarning(referrer_id=referrer.id, referred_id=user.id, amount=ref_earn))
+                
         user.is_farming = False
         user.start_time = None
         db.commit()
@@ -173,9 +196,10 @@ def claim(x_init_data: str = Header(None)):
 
 @app.post("/api/set_wallet")
 def set_wallet(req: WalletRequest, x_init_data: str = Header(None)):
-    user_id = verify_telegram_data(x_init_data)["id"]
+    tg_data, _ = verify_telegram_data(x_init_data)
+    user_id = tg_data["id"]
     if req.wallet == TOKEN_CONTRACT:
-        raise HTTPException(status_code=400, detail="Ошибка: Вы привязали контракт токена, а не свой кошелек TON!")
+        raise HTTPException(status_code=400, detail="Ошибка: Вы привязали контракт токена!")
     db = SessionLocal()
     user = db.query(User).filter(User.id == user_id).first()
     user.wallet_address = req.wallet
@@ -185,7 +209,8 @@ def set_wallet(req: WalletRequest, x_init_data: str = Header(None)):
 
 @app.post("/api/unlink_wallet")
 def unlink_wallet(x_init_data: str = Header(None)):
-    user_id = verify_telegram_data(x_init_data)["id"]
+    tg_data, _ = verify_telegram_data(x_init_data)
+    user_id = tg_data["id"]
     db = SessionLocal()
     user = db.query(User).filter(User.id == user_id).first()
     if user:
@@ -198,16 +223,17 @@ def unlink_wallet(x_init_data: str = Header(None)):
 
 @app.post("/api/withdraw")
 def withdraw(req: WithdrawRequest, x_init_data: str = Header(None)):
-    user_id = verify_telegram_data(x_init_data)["id"]
+    tg_data, _ = verify_telegram_data(x_init_data)
+    user_id = tg_data["id"]
     if req.amount < 50000: raise HTTPException(status_code=400, detail="Мин. 50 000")
-    if not req.withdraw_wallet: raise HTTPException(status_code=400, detail="Введите адрес кошелька для вывода")
+    if not req.withdraw_wallet: raise HTTPException(status_code=400, detail="Введите адрес кошелька")
     
     db = SessionLocal()
     user = db.query(User).filter(User.id == user_id).first()
     
     if not user.wallet_address: 
         db.close()
-        raise HTTPException(status_code=400, detail="Сначала привяжите кошелек TON для проверки холда")
+        raise HTTPException(status_code=400, detail="Кошелек не привязан")
 
     real_balance = get_real_wallet_balance(user.wallet_address)
     required_hold = req.amount * 0.2
@@ -227,7 +253,8 @@ def withdraw(req: WithdrawRequest, x_init_data: str = Header(None)):
 
 @app.get("/api/history")
 def history(x_init_data: str = Header(None)):
-    user_id = verify_telegram_data(x_init_data)["id"]
+    tg_data, _ = verify_telegram_data(x_init_data)
+    user_id = tg_data["id"]
     db = SessionLocal()
     wds = db.query(Withdrawal).filter(Withdrawal.user_id == user_id).order_by(Withdrawal.id.desc()).all()
     res = [{"id": w.id, "amount": w.amount, "status": w.status, "date": w.created_at.strftime("%d.%m.%Y %H:%M")} for w in wds]
@@ -237,7 +264,7 @@ def history(x_init_data: str = Header(None)):
 # ================= АДМИН ЭНДПОИНТЫ =================
 
 def check_admin(x_init_data: str):
-    tg_data = verify_telegram_data(x_init_data)
+    tg_data, _ = verify_telegram_data(x_init_data)
     if not tg_data: return False
     db = SessionLocal()
     u = db.query(User).filter(User.id == tg_data["id"]).first()
@@ -263,6 +290,18 @@ def admin_all_wds(search: str = "", x_init_data: str = Header(None)):
         query = query.filter((Withdrawal.user_id == search) | (Withdrawal.wallet.like(f"%{search}%")))
     wds = query.order_by(Withdrawal.id.desc()).all()
     res = [{"id": w.id, "user_id": w.user_id, "amount": w.amount, "wallet": w.wallet, "status": w.status, "date": w.created_at.strftime("%d.%m.%Y %H:%M")} for w in wds]
+    db.close()
+    return res
+
+@app.get("/api/admin/referrals")
+def admin_referrals(search: str = "", x_init_data: str = Header(None)):
+    if not check_admin(x_init_data): raise HTTPException(status_code=403)
+    db = SessionLocal()
+    query = db.query(ReferralEarning)
+    if search:
+        query = query.filter((ReferralEarning.referrer_id == search) | (ReferralEarning.referred_id == search))
+    refs = query.order_by(ReferralEarning.id.desc()).all()
+    res = [{"id": r.id, "referrer_id": r.referrer_id, "referred_id": r.referred_id, "amount": r.amount, "date": r.created_at.strftime("%d.%m.%Y %H:%M")} for r in refs]
     db.close()
     return res
 
@@ -294,7 +333,7 @@ def admin_search_user(query: str, x_init_data: str = Header(None)):
     res = {
         "found": True, "id": user.id, "username": user.username, "ip": user.ip_address,
         "wallet": user.wallet_address, "game_balance": user.balance, "real_balance": real_bal,
-        "is_banned": user.is_banned, "is_admin": user.is_admin, "txs": txs
+        "is_banned": user.is_banned, "is_admin": user.is_admin, "txs": txs, "referrer_id": user.referrer_id
     }
     db.close()
     return res
@@ -341,7 +380,6 @@ def admin_reset_wallet(req: AdminResetWallet, x_init_data: str = Header(None)):
     db = SessionLocal()
     user = db.query(User).filter(User.id == req.target_id).first()
     if user:
-        # ВАЖНО: Сбрасываем кэш баланса, чтобы холд сразу стал 0
         if user.wallet_address in balance_cache:
             del balance_cache[user.wallet_address]
         user.wallet_address = None
