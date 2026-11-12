@@ -60,8 +60,8 @@
         .status-approved { color: #2ecc71; }
         .status-rejected { color: #e74c3c; }
         
-        .admin-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
-        .admin-tab { flex: 1; text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 10px; font-size: 12px; cursor: pointer; }
+        .admin-tabs { display: flex; gap: 5px; margin-bottom: 15px; }
+        .admin-tab { flex: 1; text-align: center; padding: 10px 5px; background: rgba(255,255,255,0.1); border-radius: 10px; font-size: 11px; cursor: pointer; }
         .admin-tab.active { background: #D4AF37; color: #000; font-weight: bold; }
         .admin-section { display: none; }
         .admin-section.active { display: block; }
@@ -147,6 +147,7 @@
         <div class="admin-tabs">
             <div class="admin-tab active" onclick="switchAdminTab('withdrawals', this)">Заявки</div>
             <div class="admin-tab" onclick="switchAdminTab('users', this)">Юзеры</div>
+            <div class="admin-tab" onclick="switchAdminTab('history', this)">История</div>
             <div class="admin-tab" onclick="switchAdminTab('settings', this)">Бот</div>
         </div>
         <div id="admin-withdrawals" class="admin-section active">
@@ -158,6 +159,13 @@
                 <button class="btn-blue" onclick="searchUser()">Найти</button>
             </div>
             <div id="user-result"></div>
+        </div>
+        <div id="admin-history" class="admin-section">
+            <div class="input-group" style="padding: 10px;">
+                <input type="text" id="history-search" placeholder="Поиск по кошельку или ID">
+                <button class="btn-blue" onclick="loadAllHistory()">Найти</button>
+            </div>
+            <div id="all-history-list"></div>
         </div>
         <div id="admin-settings" class="admin-section">
             <div class="input-group">
@@ -190,7 +198,7 @@
         const HEADERS = { "X-Init-Data": tg.initData, "Content-Type": "application/json" };
         const TOKEN_CONTRACT = "EQCuxWmM9HG_T7i6B7PErsltrX8UohL-IUH7OSOWoXp_f8Tb";
         
-        let userData = { balance: 0, level: 1, real_balance: 0, is_farming: false, pending_reward: 0, price: 0 };
+        let userData = { balance: 0, level: 1, real_balance: 0, is_farming: false, pending_reward: 0, price: 0, base_income: 0.000057, level_bonus: 0.05 };
 
         for(let i=0; i<40; i++) {
             let s = document.createElement('div'); s.className = 'snowflake';
@@ -217,6 +225,7 @@
             document.getElementById('admin-' + tabId).classList.add('active');
             el.classList.add('active');
             if(tabId === 'settings') loadSettings();
+            if(tabId === 'history') loadAllHistory();
         }
 
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
@@ -226,10 +235,8 @@
         
         tonConnectUI.onStatusChange(wallet => {
             if (wallet) {
-                // Если подключен
                 fetch(API_URL + '/api/set_wallet', { method: 'POST', headers: HEADERS, body: JSON.stringify({ wallet: wallet.account.address }) }).then(() => loadData());
             } else {
-                // Если отключен, очищаем базу
                 fetch(API_URL + '/api/unlink_wallet', { method: 'POST', headers: HEADERS }).then(() => loadData());
             }
         });
@@ -252,7 +259,8 @@
             document.getElementById('real-balance').innerText = `Холд на кошельке: ${userData.real_balance.toFixed(0)} NEXA`;
             document.getElementById('token-price').innerText = `$${userData.price.toFixed(6)}`;
             
-            let rate = 0.000057 * (1 + (userData.level - 1) * 0.05);
+            // Берем доход и бонус напрямую из настроек сервера
+            let rate = userData.base_income * (1 + (userData.level - 1) * userData.level_bonus);
             document.getElementById('rate-hour').innerHTML = `${(rate * 3600).toFixed(2)} <span>NEXA</span>`;
             document.getElementById('rate-day').innerHTML = `${(rate * 86400).toFixed(2)} <span>NEXA</span>`;
             
@@ -279,12 +287,12 @@
             let html = '';
             for (let lvl = 1; lvl <= 20; lvl++) {
                 let hold = (lvl - 1) * 50000;
-                let rate = 0.000057 * (1 + (lvl - 1) * 0.05);
+                let rate = userData.base_income * (1 + (lvl - 1) * userData.level_bonus);
                 let daily = rate * 86400;
                 let isActive = (userData.level === lvl) ? 'active' : '';
                 html += `<div class="lvl-row ${isActive}">
                     <div class="lvl-col"><div class="lvl-title">Уровень ${lvl}</div><div class="lvl-sub">Холд: ${hold.toLocaleString()} NEXA</div></div>
-                    <div class="lvl-col" style="text-align: right;"><div style="color: #2ecc71; font-weight: bold;">${daily.toFixed(2)} NEXA/день</div><div class="lvl-sub">+5% к скорости</div></div>
+                    <div class="lvl-col" style="text-align: right;"><div style="color: #2ecc71; font-weight: bold;">${daily.toFixed(2)} NEXA/день</div></div>
                 </div>`;
             }
             document.getElementById('levels-list').innerHTML = html;
@@ -307,7 +315,8 @@
             let amt = parseFloat(document.getElementById('w-amount').value);
             if(isNaN(amt) || amt < 50000) return tg.showAlert("Минимум 50 000 NEXA");
             try {
-                let res = await fetch(API_URL + '/api/withdraw', { method: 'POST', headers: HEADERS, body: JSON.stringify({ amount: amt, wallet: "ton" }) });
+                // Убрали wallet из тела запроса, так как сервер берет его из профиля
+                let res = await fetch(API_URL + '/api/withdraw', { method: 'POST', headers: HEADERS, body: JSON.stringify({ amount: amt }) });
                 let data = await res.json();
                 if (res.ok) { tg.showAlert("Заявка создана!"); loadData(); loadHistory(); }
                 else { tg.showAlert(data.detail || "Ошибка вывода"); }
@@ -347,6 +356,26 @@
                 </div>`;
             });
             document.getElementById('admin-list').innerHTML = html || '<div style="color:#666; text-align:center;">Нет активных заявок</div>';
+        }
+
+        async function loadAllHistory() {
+            let q = document.getElementById('history-search').value;
+            let res = await fetch(API_URL + `/api/admin/all_withdrawals?search=${q}`, { headers: HEADERS });
+            let data = await res.json();
+            let html = '';
+            data.forEach(w => {
+                let st = w.status === 'pending' ? 'Ожидает' : (w.status === 'approved' ? 'Выплачено' : 'Отклонено');
+                let stColor = w.status === 'pending' ? '#f1c40f' : (w.status === 'approved' ? '#2ecc71' : '#e74c3c');
+                html += `<div class="history-item" style="flex-direction:column; align-items:flex-start;">
+                    <div style="color:#D4AF37; font-weight:bold; margin-bottom:5px;">ID: ${w.user_id}</div>
+                    <div style="font-size:10px; color:#aaa; margin-bottom:5px;">${w.date} | ${w.wallet}</div>
+                    <div style="display:flex; justify-content:space-between; width:100%;">
+                        <span>${w.amount} NEXA</span>
+                        <span style="color:${stColor}; font-weight:bold;">${st}</span>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('all-history-list').innerHTML = html || '<div style="color:#666; text-align:center;">История пуста</div>';
         }
 
         async function adminAction(id, act) {
@@ -391,21 +420,34 @@
         async function editBalance(id, isAdd) {
             let amt = parseFloat(document.getElementById('adm-amount').value);
             if(!amt) return;
-            await fetch(API_URL + '/api/admin/edit_balance', { method: 'POST', headers: HEADERS, body: JSON.stringify({ target_id: id, amount: amt, is_add: isAdd }) });
-            searchUser();
+            try {
+                let res = await fetch(API_URL + '/api/admin/edit_balance', { method: 'POST', headers: HEADERS, body: JSON.stringify({ target_id: id, amount: amt, is_add: isAdd }) });
+                if(!res.ok) {
+                    let e = await res.json();
+                    tg.showAlert(e.detail || "Ошибка");
+                } else searchUser();
+            } catch(e) {}
         }
 
         async function toggleBan(id) {
-            await fetch(API_URL + '/api/admin/toggle_ban', { method: 'POST', headers: HEADERS, body: JSON.stringify({ target_id: id, is_admin: false }) });
-            searchUser();
+            try {
+                let res = await fetch(API_URL + '/api/admin/toggle_ban', { method: 'POST', headers: HEADERS, body: JSON.stringify({ target_id: id, is_admin: false }) });
+                if(!res.ok) {
+                    let e = await res.json();
+                    tg.showAlert(e.detail || "Ошибка");
+                } else searchUser();
+            } catch(e) {}
         }
 
         async function toggleAdmin(id, isAdm) {
             try {
                 let res = await fetch(API_URL + '/api/admin/toggle_admin', { method: 'POST', headers: HEADERS, body: JSON.stringify({ target_id: id, is_admin: isAdm }) });
-                if(!res.ok) throw new Error("Нет прав");
+                if(!res.ok) {
+                    let e = await res.json();
+                    throw new Error(e.detail);
+                }
                 searchUser();
-            } catch(e) { tg.showAlert("Только главный админ может выдавать права"); }
+            } catch(e) { tg.showAlert(e.message); }
         }
 
         async function loadSettings() {
@@ -422,16 +464,17 @@
             let lb = parseFloat(document.getElementById('s-level-bonus').value);
             await fetch(API_URL + '/api/admin/settings', { method: 'POST', headers: HEADERS, body: JSON.stringify({ maintenance: m, base_income: bi, level_bonus: lb }) });
             tg.showAlert("Настройки сохранены!");
+            loadData(); // Обновляем данные, чтобы доход сразу пересчитался
         }
 
         setInterval(() => {
             if (userData.is_farming) {
-                userData.pending_reward += 0.000057 * (1 + (userData.level - 1) * 0.05);
+                let rate = userData.base_income * (1 + (userData.level - 1) * userData.level_bonus);
+                userData.pending_reward += rate;
                 updateUI();
             }
         }, 1000);
 
-        // Обновляем данные раз в 15 секунд (чтобы баланс и холд были актуальными)
         setInterval(loadData, 15000);
         loadData();
     </script>
