@@ -48,18 +48,15 @@
         .stat-card-val { font-size: 18px; font-weight: 800; color: #fff; }
         .stat-card-val span { font-size: 12px; color: #D4AF37; }
         
-        /* УРОВНИ (КАРТОЧКА С ПАГИНАЦИЕЙ) */
-        .level-page-container { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .level-nav { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 20px;}
-        .level-arrow { background: rgba(212, 175, 55, 0.2); border: 1px solid #D4AF37; color: #D4AF37; font-size: 24px; width: 50px; height: 50px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; }
+        /* УРОВНИ */
+        .level-nav { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 15px; margin-bottom: 15px; }
+        .level-arrow { background: rgba(212, 175, 55, 0.2); border: 1px solid #D4AF37; color: #D4AF37; font-size: 20px; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; }
         .level-arrow:active { transform: scale(0.9); background: #D4AF37; color: #000; }
-        .level-card { background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); border: 2px solid #D4AF37; border-radius: 20px; padding: 25px; width: 100%; text-align: center; box-shadow: 0 0 30px rgba(212, 175, 55, 0.1); }
-        .lc-title { font-size: 28px; font-weight: 900; color: #D4AF37; margin-bottom: 5px; }
-        .lc-status { font-size: 12px; font-weight: bold; margin-bottom: 20px; }
-        .lc-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 14px; }
-        .lc-row:last-child { border-bottom: none; }
-        .lc-row span:first-child { color: #aaa; }
-        .lc-row span:last-child { font-weight: bold; }
+        .lvl-row { display: flex; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 8px; font-size: 13px; border: 1px solid rgba(255,255,255,0.05);}
+        .lvl-row.active { border-color: #D4AF37; background: rgba(212, 175, 55, 0.1);}
+        .lvl-col { display: flex; flex-direction: column; gap: 4px;}
+        .lvl-title { font-weight: 800; color: #D4AF37; }
+        .lvl-sub { font-size: 11px; color: #aaa; }
         
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: rgba(10, 10, 10, 0.95); border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-around; align-items: center; z-index: 100; backdrop-filter: blur(20px); padding: 0 5px;}
         .nav-item { display: flex; flex-direction: column; align-items: center; color: #666; font-size: 9px; gap: 4px; cursor: pointer; transition: 0.2s; width: 16%;}
@@ -135,27 +132,24 @@
         </div>
     </div>
 
-    <!-- ЭКРАН 3: УРОВНИ (КАРТОЧКА) -->
+    <!-- ЭКРАН 3: УРОВНИ (СПИСОК С ПАГИНАЦИЕЙ) -->
     <div id="screen-levels" class="screen">
         <h2 style="color: #D4AF37; margin-bottom: 10px;" data-lang="levels_title">Уровни</h2>
-        <div style="font-size: 12px; color: #aaa; margin-bottom: 20px;" data-lang="levels_desc">Уровень зависит от холда NEXA на кошельке. Чем выше уровень, тем больше доход.</div>
+        <div style="font-size: 12px; color: #aaa; margin-bottom: 15px;" data-lang="levels_desc">Уровень зависит от холда NEXA на кошельке.</div>
         
-        <div class="level-page-container">
-            <div class="level-card" id="level-detail-card">
-                <!-- Заполняется через JS -->
-            </div>
-            <div class="level-nav">
-                <button class="level-arrow" onclick="changeLevelView(-1)">❮</button>
-                <div style="font-weight:bold; color:#D4AF37;" id="page-indicator">1 / 20</div>
-                <button class="level-arrow" onclick="changeLevelView(1)">❯</button>
-            </div>
+        <div class="level-nav">
+            <button class="level-arrow" onclick="changeLevelPage(-1)">❮</button>
+            <div style="font-weight:bold; color:#D4AF37;" id="page-indicator">1 / 20</div>
+            <button class="level-arrow" onclick="changeLevelPage(1)">❯</button>
         </div>
+
+        <div id="levels-list"></div>
     </div>
 
     <!-- ЭКРАН 4: ВЫВОД -->
     <div id="screen-wallet" class="screen">
         <h2 style="color: #D4AF37; margin-bottom: 10px;" data-lang="withdraw_title">Вывод средств</h2>
-        <div style="font-size: 12px; color: #aaa; margin-bottom: 15px;" data-lang="withdraw_desc">Для проверки холда привяжите кошелек TON, с которого покупали NEXA.</div>
+        <div style="font-size: 12px; color: #aaa; margin-bottom: 15px;" data-lang="withdraw_desc">Для проверки холда привяжите кошелек TON.</div>
         
         <div id="ton-connect" style="display: flex; justify-content: center; margin-bottom: 15px;"></div>
 
@@ -242,7 +236,12 @@
         
         let userData = { balance: 0, level: 1, real_balance: 0, is_farming: false, pending_reward: 0, price: 0, base_income: 0.000057, level_bonus: 0.05 };
         let currentLang = localStorage.getItem('nexa_lang') || 'ru';
-        let viewLevel = 1; // Текущий уровень для просмотра в карточке
+        
+        // Пагинация уровней
+        let currentLevelPage = 1;
+        const LEVELS_PER_PAGE = 50;
+        const MAX_LEVEL = 1000;
+        const TOTAL_PAGES = Math.ceil(MAX_LEVEL / LEVELS_PER_PAGE);
 
         // === СЛОВАРИ ПЕРЕВОДОВ ===
         const translations = {
@@ -260,8 +259,7 @@
                 search_btn: "Найти", maintenance: "Технические работы", base_income: "Базовая ставка (в сек)",
                 level_bonus: "Бонус за уровень (0.05 = +5%)", save_btn: "Сохранить настройки",
                 nav_mine: "Майнинг", nav_buy: "Обмен", nav_lvl: "Уровни", nav_wd: "Вывод", nav_fr: "Друзья", nav_adm: "Админ",
-                hold_req: "Требуемый холд:", inc_day: "Доход в день:", inc_sec: "Доход в секунду:", multiplier: "Множитель:",
-                your_lvl: "Это ваш текущий уровень!", locked: "Уровень заблокирован"
+                hold_req: "Холд:", inc_day: "NEXA/день:", mult: "Множ:"
             },
             en: {
                 balance: "Game Balance", level_hold: "Level (from Hold)", per_hour: "⚡ Per hour", per_day: "📅 Per day",
@@ -277,8 +275,7 @@
                 search_btn: "Search", maintenance: "Maintenance Mode", base_income: "Base Rate (per sec)",
                 level_bonus: "Level Bonus (0.05 = +5%)", save_btn: "Save Settings",
                 nav_mine: "Mining", nav_buy: "Exchange", nav_lvl: "Levels", nav_wd: "Withdraw", nav_fr: "Friends", nav_adm: "Admin",
-                hold_req: "Required Hold:", inc_day: "Income per day:", inc_sec: "Income per sec:", multiplier: "Multiplier:",
-                your_lvl: "This is your current level!", locked: "Level locked"
+                hold_req: "Hold:", inc_day: "NEXA/day:", mult: "Mult:"
             }
         };
 
@@ -289,21 +286,14 @@
             localStorage.setItem('nexa_lang', currentLang);
             translateUI();
             updateUI(); 
-            renderLevelPage(); // Перерисовываем уровни на новом языке
+            renderLevels();
         }
 
         function translateUI() {
             document.getElementById('lang-btn').innerText = currentLang === 'ru' ? 'EN' : 'RU';
-            
-            // Переводим все элементы с атрибутом data-lang
             document.querySelectorAll('[data-lang]').forEach(el => {
                 el.innerText = t(el.getAttribute('data-lang'));
             });
-
-            // Динамические заголовки в админке, которые не обернуты в data-lang
-            if (document.getElementById('s-maintenance')) {
-                // Можно добавить переводы для placeholder, если нужно
-            }
         }
 
         // Снег
@@ -322,7 +312,7 @@
             document.getElementById('screen-' + tabId).classList.add('active');
             el.classList.add('active');
             if(tabId === 'wallet') loadHistory();
-            if(tabId === 'levels') renderLevelPage();
+            if(tabId === 'levels') renderLevels();
             if(tabId === 'admin') loadAdminData();
         }
 
@@ -395,40 +385,40 @@
             }
         }
 
-        // ================= УРОВНИ (ПАГИНАЦИЯ) =================
-        function changeLevelView(dir) {
-            viewLevel += dir;
-            if (viewLevel < 1) viewLevel = 1;
-            if (viewLevel > 20) viewLevel = 20;
-            renderLevelPage();
+        // ================= УРОВНИ (СПИСОК + ПАГИНАЦИЯ) =================
+        function changeLevelPage(dir) {
+            currentLevelPage += dir;
+            if (currentLevelPage < 1) currentLevelPage = 1;
+            if (currentLevelPage > TOTAL_PAGES) currentLevelPage = TOTAL_PAGES;
+            renderLevels();
         }
 
-        function renderLevelPage() {
-            let lvl = viewLevel;
-            let holdReq = (lvl - 1) * 50000;
-            let rate = userData.base_income * (1 + (lvl - 1) * userData.level_bonus);
-            let daily = rate * 86400;
-            let mult = 1 + (lvl - 1) * userData.level_bonus;
+        function renderLevels() {
+            let html = '';
+            let startLvl = (currentLevelPage - 1) * LEVELS_PER_PAGE + 1;
+            let endLvl = currentLevelPage * LEVELS_PER_PAGE;
             
-            let statusHtml = "";
-            if (lvl === userData.level) {
-                statusHtml = `<div class="lc-status" style="color:#2ecc71;">${t('your_lvl')}</div>`;
-            } else if (lvl > userData.level) {
-                statusHtml = `<div class="lc-status" style="color:#e74c3c;">${t('locked')}</div>`;
-            } else {
-                statusHtml = `<div class="lc-status" style="color:#888;">---</div>`;
+            for (let lvl = startLvl; lvl <= endLvl; lvl++) {
+                let hold = (lvl - 1) * 50000;
+                let rate = userData.base_income * (1 + (lvl - 1) * userData.level_bonus);
+                let daily = rate * 86400;
+                let mult = 1 + (lvl - 1) * userData.level_bonus;
+                let isActive = (userData.level === lvl) ? 'active' : '';
+                
+                html += `<div class="lvl-row ${isActive}">
+                    <div class="lvl-col">
+                        <div class="lvl-title">${t('level_text')} ${lvl}</div>
+                        <div class="lvl-sub">${t('hold_req')} ${hold.toLocaleString()} NEXA</div>
+                    </div>
+                    <div class="lvl-col" style="text-align: right;">
+                        <div style="color: #2ecc71; font-weight: bold;">${daily.toFixed(2)} NEXA</div>
+                        <div class="lvl-sub" style="color:#3498db;">x${mult.toFixed(2)}</div>
+                    </div>
+                </div>`;
             }
-
-            let html = `
-                <div class="lc-title">${t('level_text')} ${lvl}</div>
-                ${statusHtml}
-                <div class="lc-row"><span>${t('hold_req')}</span> <span style="color:#D4AF37;">${holdReq.toLocaleString()} NEXA</span></div>
-                <div class="lc-row"><span>${t('multiplier')}</span> <span style="color:#3498db;">x${mult.toFixed(2)}</span></div>
-                <div class="lc-row"><span>${t('inc_sec')}</span> <span style="color:#fff;">${rate.toFixed(6)} NEXA</span></div>
-                <div class="lc-row"><span>${t('inc_day')}</span> <span style="color:#2ecc71; font-size:16px;">${daily.toFixed(2)} NEXA</span></div>
-            `;
-            document.getElementById('level-detail-card').innerHTML = html;
-            document.getElementById('page-indicator').innerText = `${lvl} / 20`;
+            
+            document.getElementById('levels-list').innerHTML = html;
+            document.getElementById('page-indicator').innerText = `${currentLevelPage} / ${TOTAL_PAGES}`;
         }
 
         function buyToken() { tg.openLink(`https://app.ston.fi/swap?ft=TON&tt=${TOKEN_CONTRACT}`); }
