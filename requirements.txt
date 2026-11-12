@@ -4,4 +4,4 @@ sqlalchemy
 aiogram
 python-dotenv
 pyjwt
-aiohttp
+requests
