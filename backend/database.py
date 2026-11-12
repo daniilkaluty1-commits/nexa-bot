@@ -3,19 +3,20 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import datetime
 
-DATABASE_URL = "sqlite:///./nexa.db"
+DATABASE_URL = "sqlite:///./nexa.db" # Вернули на место
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 class User(Base):
     __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True) # TG ID
+    id = Column(Integer, primary_key=True, index=True)
     balance = Column(Float, default=0.0)
     level = Column(Integer, default=1)
     wallet_address = Column(String, nullable=True)
     is_farming = Column(Boolean, default=False)
     start_time = Column(DateTime, nullable=True)
+    is_banned = Column(Boolean, default=False)
     
 class Withdrawal(Base):
     __tablename__ = "withdrawals"
