@@ -4,12 +4,14 @@ from sqlalchemy.orm import sessionmaker
 import datetime
 import os
 
-# Создаем папку /data, если ее нет
 os.makedirs('/data', exist_ok=True)
 
 DATABASE_URL = "sqlite:////data/nexa.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# ВОТ ТУТ ДОБАВЛЕН expire_on_commit=False
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, expire_on_commit=False, bind=engine)
+
 Base = declarative_base()
 
 class User(Base):
