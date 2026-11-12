@@ -2,8 +2,12 @@ from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, D
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import datetime
+import os
 
-DATABASE_URL = "sqlite:////data/nexa.db" # Вернули на место
+# Создаем папку /data, если ее нет
+os.makedirs('/data', exist_ok=True)
+
+DATABASE_URL = "sqlite:////data/nexa.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
@@ -24,7 +28,7 @@ class Withdrawal(Base):
     user_id = Column(Integer)
     amount = Column(Float)
     wallet = Column(String)
-    status = Column(String, default="pending") # pending, approved, rejected
+    status = Column(String, default="pending") 
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 Base.metadata.create_all(bind=engine)
