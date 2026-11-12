@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+ADMIN_ID = os.getenv("ADMIN_ID", "0")
 TON_API_KEY = "AHGTYS7LYHXDJMAAAAAHFQJ5ORKVTAOVKTV7KU3N7U2RSFZFNROETBHJDM3IRBYYRM2HEEA"
 TOKEN_CONTRACT = "EQCuxWmM9HG_T7i6B7PErsltrX8UohL-IUH7OSOWoXp_f8Tb"
 
@@ -16,10 +17,12 @@ app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=False, allow_methods=["*"], allow_headers=["*"])
 
 price_cache = {"price": 0.0, "last_update": 0}
+balance_cache = {}
 
 def get_token_price():
     now = datetime.utcnow().timestamp()
-    if now - price_cache["last_update"] < 60: return price_cache["price"]
+    if now - price_cache["last_update"] < 15: # Обновляем раз в 15 сек
+        return price_cache["price"]
     try:
         res = requests.get(f"https://api.dexscreener.com/latest/dex/tokens/{TOKEN_CONTRACT}", timeout=5)
         data = res.json()
@@ -31,18 +34,25 @@ def get_token_price():
 
 def get_real_wallet_balance(wallet):
     if not wallet: return 0.0
+    now = datetime.utcnow().timestamp()
+    # Обновляем кэш кошелька раз в 10 секунд
+    if wallet in balance_cache and now - balance_cache[wallet]["last_update"] < 10:
+        return balance_cache[wallet]["balance"]
     try:
         res = requests.get(f"https://tonapi.io/v2/accounts/{wallet}/jettons/{TOKEN_CONTRACT}", headers={"Authorization": f"Bearer {TON_API_KEY}"}, timeout=5)
         if res.status_code == 200:
             data = res.json()
-            return int(data['balance']) / (10 ** int(data['jetton']['decimals']))
+            bal = int(data['balance']) / (10 ** int(data['jetton']['decimals']))
+            balance_cache[wallet] = {"balance": bal, "last_update": now}
+            return bal
+        elif res.status_code == 404:
+            return 0.0
     except: pass
     return 0.0
 
 def get_wallet_transactions(wallet):
     if not wallet: return []
     try:
-        # Берем последние 5 транзакций по токену
         res = requests.get(f"https://tonapi.io/v2/accounts/{wallet}/jettons/{TOKEN_CONTRACT}/history?limit=5", headers={"Authorization": f"Bearer {TON_API_KEY}"}, timeout=5)
         if res.status_code == 200:
             events = res.json().get('events', [])
@@ -67,7 +77,6 @@ def verify_telegram_data(init_data: str):
     except: pass
     return None
 
-# --- МОДЕЛИ ---
 class WalletRequest(BaseModel): wallet: str
 class WithdrawRequest(BaseModel): amount: float
 class AdminAction(BaseModel): wd_id: int; action: str
@@ -86,20 +95,25 @@ def login(request: Request, x_init_data: str = Header(None)):
     
     db = SessionLocal()
     user = db.query(User).filter(User.id == user_id).first()
+    
+    # Принудительно выдаем админку главному ID
+    is_main_admin = str(user_id) == str(ADMIN_ID)
+
     if not user:
-        user = User(id=user_id, username=username, ip_address=ip)
+        user = User(id=user_id, username=username, ip_address=ip, is_admin=is_main_admin)
         db.add(user)
     else:
-        user.ip_address = ip # Обновляем IP при каждом входе
+        user.ip_address = ip
         if username: user.username = username
+        if is_main_admin: user.is_admin = True
     
     if user.is_banned: 
         db.close()
         raise HTTPException(status_code=403, detail="Вы забанены")
     
     settings = db.query(Setting).first()
-    
     real_balance = get_real_wallet_balance(user.wallet_address)
+    
     new_level = int(real_balance / 50000) + 1
     if new_level > 1000: new_level = 1000
     user.level = new_level
@@ -130,7 +144,6 @@ def start_farm(x_init_data: str = Header(None)):
     if settings.maintenance: 
         db.close()
         raise HTTPException(status_code=400, detail="Технические работы на ферме!")
-        
     user = db.query(User).filter(User.id == user_id).first()
     if not user.is_farming:
         user.is_farming = True
@@ -145,7 +158,6 @@ def claim(x_init_data: str = Header(None)):
     db = SessionLocal()
     settings = db.query(Setting).first()
     user = db.query(User).filter(User.id == user_id).first()
-    
     if user.is_farming:
         elapsed = (datetime.utcnow() - user.start_time).total_seconds()
         if elapsed > 28800: elapsed = 28800
@@ -167,23 +179,31 @@ def set_wallet(req: WalletRequest, x_init_data: str = Header(None)):
     db.close()
     return {"status": "ok"}
 
+@app.post("/api/unlink_wallet")
+def unlink_wallet(x_init_data: str = Header(None)):
+    user_id = verify_telegram_data(x_init_data)["id"]
+    db = SessionLocal()
+    user = db.query(User).filter(User.id == user_id).first()
+    if user:
+        user.wallet_address = None
+        db.commit()
+    db.close()
+    return {"status": "ok"}
+
 @app.post("/api/withdraw")
 def withdraw(req: WithdrawRequest, x_init_data: str = Header(None)):
     user_id = verify_telegram_data(x_init_data)["id"]
     if req.amount < 50000: raise HTTPException(status_code=400, detail="Мин. 50 000")
-        
     db = SessionLocal()
     user = db.query(User).filter(User.id == user_id).first()
     real_balance = get_real_wallet_balance(user.wallet_address)
     required_hold = req.amount * 0.2
-    
     if real_balance < required_hold:
         db.close()
         raise HTTPException(status_code=400, detail=f"Нужен холд {required_hold:.0f} NEXA")
     if user.balance < req.amount: 
         db.close()
         raise HTTPException(status_code=400, detail="Мало игровых средств")
-        
     user.balance -= req.amount
     db.add(Withdrawal(user_id=user.id, amount=req.amount, wallet=user.wallet_address))
     db.commit()
@@ -238,15 +258,12 @@ def admin_action(req: AdminAction, x_init_data: str = Header(None)):
 def admin_search_user(query: str, x_init_data: str = Header(None)):
     if not check_admin(x_init_data): raise HTTPException(status_code=403)
     db = SessionLocal()
-    # Ищем либо по ID, либо по кошельку
     user = db.query(User).filter((User.id == query) | (User.wallet_address == query)).first()
     if not user: 
         db.close()
         return {"found": False}
-        
     real_bal = get_real_wallet_balance(user.wallet_address)
     txs = get_wallet_transactions(user.wallet_address)
-    
     res = {
         "found": True, "id": user.id, "username": user.username, "ip": user.ip_address,
         "wallet": user.wallet_address, "game_balance": user.balance, "real_balance": real_bal,
@@ -280,10 +297,8 @@ def admin_toggle_ban(req: AdminChangeRole, x_init_data: str = Header(None)):
 
 @app.post("/api/admin/toggle_admin")
 def admin_toggle_admin(req: AdminChangeRole, x_init_data: str = Header(None)):
-    # Выдавать админку может только главный админ (ID из переменной окружения)
     tg_id = verify_telegram_data(x_init_data)["id"]
-    if str(tg_id) != str(os.getenv("ADMIN_ID")): raise HTTPException(status_code=403, detail="Только главный админ может выдавать права")
-    
+    if str(tg_id) != str(ADMIN_ID): raise HTTPException(status_code=403, detail="Только главный админ может выдавать права")
     db = SessionLocal()
     user = db.query(User).filter(User.id == req.target_id).first()
     if user:
