@@ -77,7 +77,6 @@ def verify_telegram_data(init_data: str):
     return None
 
 class WalletRequest(BaseModel): wallet: str
-# Обновили модель: теперь принимает адрес для вывода
 class WithdrawRequest(BaseModel): amount: float; withdraw_wallet: str 
 class AdminAction(BaseModel): wd_id: int; action: str
 class AdminEditBalance(BaseModel): target_id: int; amount: float; is_add: bool
@@ -192,7 +191,6 @@ def unlink_wallet(x_init_data: str = Header(None)):
     if user:
         user.wallet_address = None
         db.commit()
-        # Очищаем кэш для этого кошелька
         if user.wallet_address in balance_cache:
             del balance_cache[user.wallet_address]
     db.close()
@@ -221,7 +219,6 @@ def withdraw(req: WithdrawRequest, x_init_data: str = Header(None)):
         raise HTTPException(status_code=400, detail="Мало игровых средств")
         
     user.balance -= req.amount
-    # В БАЗУ ПИШЕМ АДРЕС, КОТОРЫЙ ВВЕЛ ЮЗЕР ВРУЧНУЮ!
     wd = Withdrawal(user_id=user.id, amount=req.amount, wallet=req.withdraw_wallet)
     db.add(wd)
     db.commit()
@@ -305,7 +302,6 @@ def admin_search_user(query: str, x_init_data: str = Header(None)):
 @app.post("/api/admin/edit_balance")
 def admin_edit_balance(req: AdminEditBalance, x_init_data: str = Header(None)):
     if not check_admin(x_init_data): raise HTTPException(status_code=403)
-    # УБРАЛИ ЗАПРЕТ НА ИЗМЕНЕНИЕ БАЛАНСА ГЛАВНОГО АДМИНА
     db = SessionLocal()
     user = db.query(User).filter(User.id == req.target_id).first()
     if user:
@@ -345,6 +341,9 @@ def admin_reset_wallet(req: AdminResetWallet, x_init_data: str = Header(None)):
     db = SessionLocal()
     user = db.query(User).filter(User.id == req.target_id).first()
     if user:
+        # ВАЖНО: Сбрасываем кэш баланса, чтобы холд сразу стал 0
+        if user.wallet_address in balance_cache:
+            del balance_cache[user.wallet_address]
         user.wallet_address = None
         db.commit()
     db.close()
