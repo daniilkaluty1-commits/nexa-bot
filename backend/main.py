@@ -77,7 +77,8 @@ def verify_telegram_data(init_data: str):
     return None
 
 class WalletRequest(BaseModel): wallet: str
-class WithdrawRequest(BaseModel): amount: float
+# Обновили модель: теперь принимает адрес для вывода
+class WithdrawRequest(BaseModel): amount: float; withdraw_wallet: str 
 class AdminAction(BaseModel): wd_id: int; action: str
 class AdminEditBalance(BaseModel): target_id: int; amount: float; is_add: bool
 class AdminChangeRole(BaseModel): target_id: int; is_admin: bool
@@ -110,7 +111,6 @@ def login(request: Request, x_init_data: str = Header(None)):
         raise HTTPException(status_code=403, detail="Вы забанены")
     
     settings = db.query(Setting).first()
-    
     if settings.maintenance and not user.is_admin:
         db.close()
         raise HTTPException(status_code=403, detail="На ферме технические работы. Зайдите позже.")
@@ -175,11 +175,8 @@ def claim(x_init_data: str = Header(None)):
 @app.post("/api/set_wallet")
 def set_wallet(req: WalletRequest, x_init_data: str = Header(None)):
     user_id = verify_telegram_data(x_init_data)["id"]
-    
-    # ЗАЩИТА ОТ ДУРАКА: Нельзя привязать контракт токена вместо кошелька
     if req.wallet == TOKEN_CONTRACT:
         raise HTTPException(status_code=400, detail="Ошибка: Вы привязали контракт токена, а не свой кошелек TON!")
-        
     db = SessionLocal()
     user = db.query(User).filter(User.id == user_id).first()
     user.wallet_address = req.wallet
@@ -195,6 +192,9 @@ def unlink_wallet(x_init_data: str = Header(None)):
     if user:
         user.wallet_address = None
         db.commit()
+        # Очищаем кэш для этого кошелька
+        if user.wallet_address in balance_cache:
+            del balance_cache[user.wallet_address]
     db.close()
     return {"status": "ok"}
 
@@ -202,12 +202,14 @@ def unlink_wallet(x_init_data: str = Header(None)):
 def withdraw(req: WithdrawRequest, x_init_data: str = Header(None)):
     user_id = verify_telegram_data(x_init_data)["id"]
     if req.amount < 50000: raise HTTPException(status_code=400, detail="Мин. 50 000")
+    if not req.withdraw_wallet: raise HTTPException(status_code=400, detail="Введите адрес кошелька для вывода")
+    
     db = SessionLocal()
     user = db.query(User).filter(User.id == user_id).first()
     
     if not user.wallet_address: 
         db.close()
-        raise HTTPException(status_code=400, detail="Кошелек не привязан")
+        raise HTTPException(status_code=400, detail="Сначала привяжите кошелек TON для проверки холда")
 
     real_balance = get_real_wallet_balance(user.wallet_address)
     required_hold = req.amount * 0.2
@@ -219,7 +221,8 @@ def withdraw(req: WithdrawRequest, x_init_data: str = Header(None)):
         raise HTTPException(status_code=400, detail="Мало игровых средств")
         
     user.balance -= req.amount
-    wd = Withdrawal(user_id=user.id, amount=req.amount, wallet=user.wallet_address)
+    # В БАЗУ ПИШЕМ АДРЕС, КОТОРЫЙ ВВЕЛ ЮЗЕР ВРУЧНУЮ!
+    wd = Withdrawal(user_id=user.id, amount=req.amount, wallet=req.withdraw_wallet)
     db.add(wd)
     db.commit()
     db.close()
@@ -302,7 +305,7 @@ def admin_search_user(query: str, x_init_data: str = Header(None)):
 @app.post("/api/admin/edit_balance")
 def admin_edit_balance(req: AdminEditBalance, x_init_data: str = Header(None)):
     if not check_admin(x_init_data): raise HTTPException(status_code=403)
-    if str(req.target_id) == str(ADMIN_ID): raise HTTPException(status_code=403, detail="Нельзя менять баланс главного админа")
+    # УБРАЛИ ЗАПРЕТ НА ИЗМЕНЕНИЕ БАЛАНСА ГЛАВНОГО АДМИНА
     db = SessionLocal()
     user = db.query(User).filter(User.id == req.target_id).first()
     if user:
