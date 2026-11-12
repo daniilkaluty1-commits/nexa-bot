@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Header
-from database import SessionLocal, User, Withdrawal
+from backend.database import SessionLocal, User, Withdrawal  # <-- Изменили импорт
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime, timedelta
