@@ -3,7 +3,7 @@ from backend.database import SessionLocal, User, Withdrawal
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime
-import hashlib, hmac, urllib.parse, os, json, math
+import hashlib, hmac, urllib.parse, os, json
 import requests
 from dotenv import load_dotenv
 
@@ -11,7 +11,6 @@ load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = int(os.getenv("ADMIN_ID", "0"))
 
-# Настройки токена
 TON_API_KEY = "AHGTYS7LYHXDJMAAAAAHFQJ5ORKVTAOVKTV7KU3N7U2RSFZFNROETBHJDM3IRBYYRM2HEEA"
 TOKEN_CONTRACT = "EQCuxWmM9HG_T7i6B7PErsltrX8UohL-IUH7OSOWoXp_f8Tb"
 
@@ -20,6 +19,11 @@ app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_credentials=False,
     allow_methods=["*"], allow_headers=["*"],
 )
+
+# Проверка, что сервер жив
+@app.get("/")
+def read_root():
+    return {"status": "ok", "message": "NEXA API is running"}
 
 price_cache = {"price": 0.0, "last_update": 0}
 balance_cache = {}
@@ -96,10 +100,8 @@ def login(x_init_data: str = Header(None)):
         db.close()
         raise HTTPException(status_code=403, detail="Вы забанены")
     
-    # Получаем реальный баланс
     real_balance = get_real_wallet_balance(user.wallet_address)
     
-    # Уровень от реального баланса
     new_level = int(real_balance / 50000) + 1
     if new_level > 1000: new_level = 1000
     user.level = new_level
@@ -193,7 +195,6 @@ def withdraw(req: WithdrawRequest, x_init_data: str = Header(None)):
     db.close()
     return {"status": "ok"}
 
-# ... (эндпоинты history и admin оставь как были)
 @app.get("/api/history")
 def history(x_init_data: str = Header(None)):
     user_id = verify_telegram_data(x_init_data)
