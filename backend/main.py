@@ -33,7 +33,7 @@ def get_token_price():
     return price_cache["price"]
 
 def get_real_wallet_balance(wallet):
-    if not wallet: return 0.0
+    if not wallet or wallet == TOKEN_CONTRACT: return 0.0
     now = datetime.utcnow().timestamp()
     if wallet in balance_cache and now - balance_cache[wallet]["last_update"] < 10:
         return balance_cache[wallet]["balance"]
@@ -50,7 +50,7 @@ def get_real_wallet_balance(wallet):
     return 0.0
 
 def get_wallet_transactions(wallet):
-    if not wallet: return []
+    if not wallet or wallet == TOKEN_CONTRACT: return []
     try:
         res = requests.get(f"https://tonapi.io/v2/accounts/{wallet}/jettons/{TOKEN_CONTRACT}/history?limit=5", headers={"Authorization": f"Bearer {TON_API_KEY}"}, timeout=5)
         if res.status_code == 200:
@@ -82,6 +82,7 @@ class AdminAction(BaseModel): wd_id: int; action: str
 class AdminEditBalance(BaseModel): target_id: int; amount: float; is_add: bool
 class AdminChangeRole(BaseModel): target_id: int; is_admin: bool
 class AdminSettings(BaseModel): maintenance: bool; base_income: float; level_bonus: float
+class AdminResetWallet(BaseModel): target_id: int
 
 @app.post("/api/login")
 def login(request: Request, x_init_data: str = Header(None)):
@@ -110,7 +111,6 @@ def login(request: Request, x_init_data: str = Header(None)):
     
     settings = db.query(Setting).first()
     
-    # Проверка на тех-перерыв (кроме админа)
     if settings.maintenance and not user.is_admin:
         db.close()
         raise HTTPException(status_code=403, detail="На ферме технические работы. Зайдите позже.")
@@ -175,6 +175,11 @@ def claim(x_init_data: str = Header(None)):
 @app.post("/api/set_wallet")
 def set_wallet(req: WalletRequest, x_init_data: str = Header(None)):
     user_id = verify_telegram_data(x_init_data)["id"]
+    
+    # ЗАЩИТА ОТ ДУРАКА: Нельзя привязать контракт токена вместо кошелька
+    if req.wallet == TOKEN_CONTRACT:
+        raise HTTPException(status_code=400, detail="Ошибка: Вы привязали контракт токена, а не свой кошелек TON!")
+        
     db = SessionLocal()
     user = db.query(User).filter(User.id == user_id).first()
     user.wallet_address = req.wallet
@@ -214,7 +219,8 @@ def withdraw(req: WithdrawRequest, x_init_data: str = Header(None)):
         raise HTTPException(status_code=400, detail="Мало игровых средств")
         
     user.balance -= req.amount
-    db.add(Withdrawal(user_id=user.id, amount=req.amount, wallet=user.wallet_address))
+    wd = Withdrawal(user_id=user.id, amount=req.amount, wallet=user.wallet_address)
+    db.add(wd)
     db.commit()
     db.close()
     return {"status": "ok"}
@@ -326,6 +332,17 @@ def admin_toggle_admin(req: AdminChangeRole, x_init_data: str = Header(None)):
     user = db.query(User).filter(User.id == req.target_id).first()
     if user:
         user.is_admin = req.is_admin
+        db.commit()
+    db.close()
+    return {"status": "ok"}
+
+@app.post("/api/admin/reset_wallet")
+def admin_reset_wallet(req: AdminResetWallet, x_init_data: str = Header(None)):
+    if not check_admin(x_init_data): raise HTTPException(status_code=403)
+    db = SessionLocal()
+    user = db.query(User).filter(User.id == req.target_id).first()
+    if user:
+        user.wallet_address = None
         db.commit()
     db.close()
     return {"status": "ok"}
