@@ -1,5 +1,5 @@
-from fastapi import FastAPI, HTTPException, Header
-from backend.database import SessionLocal, User, Withdrawal
+from fastapi import FastAPI, HTTPException, Header, Request
+from backend.database import SessionLocal, User, Withdrawal, Setting
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime
@@ -9,63 +9,50 @@ from dotenv import load_dotenv
 
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-ADMIN_ID = int(os.getenv("ADMIN_ID", "0"))
-
 TON_API_KEY = "AHGTYS7LYHXDJMAAAAAHFQJ5ORKVTAOVKTV7KU3N7U2RSFZFNROETBHJDM3IRBYYRM2HEEA"
 TOKEN_CONTRACT = "EQCuxWmM9HG_T7i6B7PErsltrX8UohL-IUH7OSOWoXp_f8Tb"
 
 app = FastAPI()
-app.add_middleware(
-    CORSMiddleware, allow_origins=["*"], allow_credentials=False,
-    allow_methods=["*"], allow_headers=["*"],
-)
-
-@app.get("/")
-def read_root():
-    return {"status": "ok", "message": "NEXA API is running"}
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=False, allow_methods=["*"], allow_headers=["*"])
 
 price_cache = {"price": 0.0, "last_update": 0}
-balance_cache = {}
 
 def get_token_price():
     now = datetime.utcnow().timestamp()
-    if now - price_cache["last_update"] < 60: 
-        return price_cache["price"]
+    if now - price_cache["last_update"] < 60: return price_cache["price"]
     try:
-        url = f"https://api.dexscreener.com/latest/dex/tokens/{TOKEN_CONTRACT}"
-        res = requests.get(url, timeout=5)
+        res = requests.get(f"https://api.dexscreener.com/latest/dex/tokens/{TOKEN_CONTRACT}", timeout=5)
         data = res.json()
         if data.get('pairs'):
             price_cache["price"] = float(data['pairs'][0]['priceUsd'])
             price_cache["last_update"] = now
-    except Exception as e:
-        print(f"ОШИБКА DexScreener: {e}")
+    except: pass
     return price_cache["price"]
 
-def get_real_wallet_balance(wallet_address):
-    if not wallet_address: return 0.0
-    now = datetime.utcnow().timestamp()
-    if wallet_address in balance_cache and now - balance_cache[wallet_address]["last_update"] < 60:
-        return balance_cache[wallet_address]["balance"]
-        
+def get_real_wallet_balance(wallet):
+    if not wallet: return 0.0
     try:
-        url = f"https://tonapi.io/v2/accounts/{wallet_address}/jettons/{TOKEN_CONTRACT}"
-        headers = {"Authorization": f"Bearer {TON_API_KEY}"}
-        res = requests.get(url, headers=headers, timeout=5)
+        res = requests.get(f"https://tonapi.io/v2/accounts/{wallet}/jettons/{TOKEN_CONTRACT}", headers={"Authorization": f"Bearer {TON_API_KEY}"}, timeout=5)
         if res.status_code == 200:
             data = res.json()
-            decimals = int(data['jetton']['decimals'])
-            bal = int(data['balance']) / (10 ** decimals)
-            balance_cache[wallet_address] = {"balance": bal, "last_update": now}
-            print(f"DEBUG: Кошелек {wallet_address} | Баланс: {bal}")
-            return bal
-        elif res.status_code == 404:
-            return 0.0
-        else:
-            print(f"DEBUG TonAPI Ошибка: {res.status_code} - {res.text}")
-    except Exception as e:
-        print(f"ОШИБКА TonAPI: {e}")
+            return int(data['balance']) / (10 ** int(data['jetton']['decimals']))
+    except: pass
     return 0.0
+
+def get_wallet_transactions(wallet):
+    if not wallet: return []
+    try:
+        # Берем последние 5 транзакций по токену
+        res = requests.get(f"https://tonapi.io/v2/accounts/{wallet}/jettons/{TOKEN_CONTRACT}/history?limit=5", headers={"Authorization": f"Bearer {TON_API_KEY}"}, timeout=5)
+        if res.status_code == 200:
+            events = res.json().get('events', [])
+            txs = []
+            for e in events:
+                action = e['actions'][0]['simple_preview']['description']
+                txs.append({"time": datetime.fromtimestamp(e['timestamp']).strftime("%d.%m %H:%M"), "text": action})
+            return txs
+    except: pass
+    return []
 
 def verify_telegram_data(init_data: str):
     try:
@@ -76,62 +63,74 @@ def verify_telegram_data(init_data: str):
         secret_key = hmac.new(b"WebAppData", BOT_TOKEN.encode(), hashlib.sha256).digest()
         calculated_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
         if calculated_hash == hash_str:
-            user_data = json.loads(parsed_data["user"])
-            return user_data["id"]
+            return json.loads(parsed_data["user"])
     except: pass
     return None
 
+# --- МОДЕЛИ ---
 class WalletRequest(BaseModel): wallet: str
 class WithdrawRequest(BaseModel): amount: float
 class AdminAction(BaseModel): wd_id: int; action: str
+class AdminEditBalance(BaseModel): target_id: int; amount: float; is_add: bool
+class AdminChangeRole(BaseModel): target_id: int; is_admin: bool
+class AdminSettings(BaseModel): maintenance: bool; base_income: float; level_bonus: float
 
 @app.post("/api/login")
-def login(x_init_data: str = Header(None)):
-    user_id = verify_telegram_data(x_init_data)
-    if not user_id: raise HTTPException(status_code=401, detail="Auth error")
+def login(request: Request, x_init_data: str = Header(None)):
+    tg_data = verify_telegram_data(x_init_data)
+    if not tg_data: raise HTTPException(status_code=401, detail="Auth error")
+    
+    user_id = tg_data["id"]
+    username = tg_data.get("username", "")
+    ip = request.headers.get("x-forwarded-for", request.client.host).split(",")[0].strip()
     
     db = SessionLocal()
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        user = User(id=user_id)
+        user = User(id=user_id, username=username, ip_address=ip)
         db.add(user)
-        db.commit()
+    else:
+        user.ip_address = ip # Обновляем IP при каждом входе
+        if username: user.username = username
     
     if user.is_banned: 
         db.close()
         raise HTTPException(status_code=403, detail="Вы забанены")
     
-    real_balance = get_real_wallet_balance(user.wallet_address)
+    settings = db.query(Setting).first()
     
+    real_balance = get_real_wallet_balance(user.wallet_address)
     new_level = int(real_balance / 50000) + 1
     if new_level > 1000: new_level = 1000
     user.level = new_level
     
     pending_reward = 0
-    if user.is_farming:
-        now = datetime.utcnow()
-        elapsed = (now - user.start_time).total_seconds()
+    if user.is_farming and not settings.maintenance:
+        elapsed = (datetime.utcnow() - user.start_time).total_seconds()
         if elapsed > 28800: elapsed = 28800
-        multiplier = 1.0 + (user.level - 1) * 0.05
-        pending_reward = elapsed * 0.000057 * multiplier
+        multiplier = 1.0 + (user.level - 1) * settings.level_bonus
+        pending_reward = elapsed * settings.base_income * multiplier
         
     db.commit()
-    
-    # СОБИРАЕМ ДАННЫЕ ДО ЗАКРЫТИЯ БАЗЫ
-    response_data = {
+    res = {
         "user_id": user.id, "balance": user.balance, "level": user.level,
         "wallet": user.wallet_address, "real_balance": real_balance,
         "is_farming": user.is_farming, "pending_reward": pending_reward, 
-        "is_admin": user.id == ADMIN_ID, "price": get_token_price()
+        "is_admin": user.is_admin, "price": get_token_price(),
+        "maintenance": settings.maintenance
     }
     db.close()
-    
-    return response_data
+    return res
 
 @app.post("/api/start_farm")
 def start_farm(x_init_data: str = Header(None)):
-    user_id = verify_telegram_data(x_init_data)
+    user_id = verify_telegram_data(x_init_data)["id"]
     db = SessionLocal()
+    settings = db.query(Setting).first()
+    if settings.maintenance: 
+        db.close()
+        raise HTTPException(status_code=400, detail="Технические работы на ферме!")
+        
     user = db.query(User).filter(User.id == user_id).first()
     if not user.is_farming:
         user.is_farming = True
@@ -142,16 +141,16 @@ def start_farm(x_init_data: str = Header(None)):
 
 @app.post("/api/claim")
 def claim(x_init_data: str = Header(None)):
-    user_id = verify_telegram_data(x_init_data)
+    user_id = verify_telegram_data(x_init_data)["id"]
     db = SessionLocal()
+    settings = db.query(Setting).first()
     user = db.query(User).filter(User.id == user_id).first()
+    
     if user.is_farming:
-        now = datetime.utcnow()
-        elapsed = (now - user.start_time).total_seconds()
+        elapsed = (datetime.utcnow() - user.start_time).total_seconds()
         if elapsed > 28800: elapsed = 28800
-        
-        multiplier = 1.0 + (user.level - 1) * 0.05
-        user.balance += elapsed * 0.000057 * multiplier
+        multiplier = 1.0 + (user.level - 1) * settings.level_bonus
+        user.balance += elapsed * settings.base_income * multiplier
         user.is_farming = False
         user.start_time = None
         db.commit()
@@ -160,7 +159,7 @@ def claim(x_init_data: str = Header(None)):
 
 @app.post("/api/set_wallet")
 def set_wallet(req: WalletRequest, x_init_data: str = Header(None)):
-    user_id = verify_telegram_data(x_init_data)
+    user_id = verify_telegram_data(x_init_data)["id"]
     db = SessionLocal()
     user = db.query(User).filter(User.id == user_id).first()
     user.wallet_address = req.wallet
@@ -170,57 +169,59 @@ def set_wallet(req: WalletRequest, x_init_data: str = Header(None)):
 
 @app.post("/api/withdraw")
 def withdraw(req: WithdrawRequest, x_init_data: str = Header(None)):
-    user_id = verify_telegram_data(x_init_data)
-    if req.amount < 50000: raise HTTPException(status_code=400, detail="Мин. 50 000 NEXA")
+    user_id = verify_telegram_data(x_init_data)["id"]
+    if req.amount < 50000: raise HTTPException(status_code=400, detail="Мин. 50 000")
         
     db = SessionLocal()
     user = db.query(User).filter(User.id == user_id).first()
-    
     real_balance = get_real_wallet_balance(user.wallet_address)
     required_hold = req.amount * 0.2
+    
     if real_balance < required_hold:
         db.close()
-        raise HTTPException(status_code=400, detail=f"Нужно холдить {required_hold:.0f} NEXA. У вас: {real_balance:.0f}")
-        
+        raise HTTPException(status_code=400, detail=f"Нужен холд {required_hold:.0f} NEXA")
     if user.balance < req.amount: 
         db.close()
-        raise HTTPException(status_code=400, detail="Недостаточно игровых средств")
-    if not user.wallet_address: 
-        db.close()
-        raise HTTPException(status_code=400, detail="Кошелек не привязан")
+        raise HTTPException(status_code=400, detail="Мало игровых средств")
         
     user.balance -= req.amount
-    wd = Withdrawal(user_id=user.id, amount=req.amount, wallet=user.wallet_address)
-    db.add(wd)
+    db.add(Withdrawal(user_id=user.id, amount=req.amount, wallet=user.wallet_address))
     db.commit()
     db.close()
     return {"status": "ok"}
 
 @app.get("/api/history")
 def history(x_init_data: str = Header(None)):
-    user_id = verify_telegram_data(x_init_data)
+    user_id = verify_telegram_data(x_init_data)["id"]
     db = SessionLocal()
     wds = db.query(Withdrawal).filter(Withdrawal.user_id == user_id).order_by(Withdrawal.id.desc()).all()
-    
     res = [{"id": w.id, "amount": w.amount, "status": w.status, "date": w.created_at.strftime("%d.%m.%Y %H:%M")} for w in wds]
     db.close()
     return res
 
+# ================= АДМИН ЭНДПОИНТЫ =================
+
+def check_admin(x_init_data: str):
+    tg_data = verify_telegram_data(x_init_data)
+    if not tg_data: return False
+    db = SessionLocal()
+    u = db.query(User).filter(User.id == tg_data["id"]).first()
+    is_adm = u.is_admin if u else False
+    db.close()
+    return is_adm
+
 @app.get("/api/admin/withdrawals")
 def admin_wds(x_init_data: str = Header(None)):
-    user_id = verify_telegram_data(x_init_data)
-    if user_id != ADMIN_ID: raise HTTPException(status_code=403, detail="Нет доступа")
+    if not check_admin(x_init_data): raise HTTPException(status_code=403)
     db = SessionLocal()
     wds = db.query(Withdrawal).filter(Withdrawal.status == "pending").all()
-    
     res = [{"id": w.id, "user_id": w.user_id, "amount": w.amount, "wallet": w.wallet, "date": w.created_at.strftime("%d.%m %H:%M")} for w in wds]
     db.close()
     return res
 
 @app.post("/api/admin/action")
 def admin_action(req: AdminAction, x_init_data: str = Header(None)):
-    user_id = verify_telegram_data(x_init_data)
-    if user_id != ADMIN_ID: raise HTTPException(status_code=403, detail="Нет доступа")
+    if not check_admin(x_init_data): raise HTTPException(status_code=403)
     db = SessionLocal()
     wd = db.query(Withdrawal).filter(Withdrawal.id == req.wd_id).first()
     if wd:
@@ -230,5 +231,84 @@ def admin_action(req: AdminAction, x_init_data: str = Header(None)):
             usr = db.query(User).filter(User.id == wd.user_id).first()
             if usr: usr.balance += wd.amount
         db.commit()
+    db.close()
+    return {"status": "ok"}
+
+@app.get("/api/admin/search_user")
+def admin_search_user(query: str, x_init_data: str = Header(None)):
+    if not check_admin(x_init_data): raise HTTPException(status_code=403)
+    db = SessionLocal()
+    # Ищем либо по ID, либо по кошельку
+    user = db.query(User).filter((User.id == query) | (User.wallet_address == query)).first()
+    if not user: 
+        db.close()
+        return {"found": False}
+        
+    real_bal = get_real_wallet_balance(user.wallet_address)
+    txs = get_wallet_transactions(user.wallet_address)
+    
+    res = {
+        "found": True, "id": user.id, "username": user.username, "ip": user.ip_address,
+        "wallet": user.wallet_address, "game_balance": user.balance, "real_balance": real_bal,
+        "is_banned": user.is_banned, "is_admin": user.is_admin, "txs": txs
+    }
+    db.close()
+    return res
+
+@app.post("/api/admin/edit_balance")
+def admin_edit_balance(req: AdminEditBalance, x_init_data: str = Header(None)):
+    if not check_admin(x_init_data): raise HTTPException(status_code=403)
+    db = SessionLocal()
+    user = db.query(User).filter(User.id == req.target_id).first()
+    if user:
+        if req.is_add: user.balance += req.amount
+        else: user.balance -= req.amount
+        db.commit()
+    db.close()
+    return {"status": "ok"}
+
+@app.post("/api/admin/toggle_ban")
+def admin_toggle_ban(req: AdminChangeRole, x_init_data: str = Header(None)):
+    if not check_admin(x_init_data): raise HTTPException(status_code=403)
+    db = SessionLocal()
+    user = db.query(User).filter(User.id == req.target_id).first()
+    if user:
+        user.is_banned = not user.is_banned
+        db.commit()
+    db.close()
+    return {"status": "ok"}
+
+@app.post("/api/admin/toggle_admin")
+def admin_toggle_admin(req: AdminChangeRole, x_init_data: str = Header(None)):
+    # Выдавать админку может только главный админ (ID из переменной окружения)
+    tg_id = verify_telegram_data(x_init_data)["id"]
+    if str(tg_id) != str(os.getenv("ADMIN_ID")): raise HTTPException(status_code=403, detail="Только главный админ может выдавать права")
+    
+    db = SessionLocal()
+    user = db.query(User).filter(User.id == req.target_id).first()
+    if user:
+        user.is_admin = req.is_admin
+        db.commit()
+    db.close()
+    return {"status": "ok"}
+
+@app.get("/api/admin/settings")
+def admin_get_settings(x_init_data: str = Header(None)):
+    if not check_admin(x_init_data): raise HTTPException(status_code=403)
+    db = SessionLocal()
+    s = db.query(Setting).first()
+    res = {"maintenance": s.maintenance, "base_income": s.base_income, "level_bonus": s.level_bonus}
+    db.close()
+    return res
+
+@app.post("/api/admin/settings")
+def admin_set_settings(req: AdminSettings, x_init_data: str = Header(None)):
+    if not check_admin(x_init_data): raise HTTPException(status_code=403)
+    db = SessionLocal()
+    s = db.query(Setting).first()
+    s.maintenance = req.maintenance
+    s.base_income = req.base_income
+    s.level_bonus = req.level_bonus
+    db.commit()
     db.close()
     return {"status": "ok"}
