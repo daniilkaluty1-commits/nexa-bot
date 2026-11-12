@@ -11,6 +11,12 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
         body { background-color: #050505; color: white; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
         .bg-village { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(to bottom, rgba(5, 10, 20, 0.6), rgba(5, 5, 5, 1)), url('https://images.unsplash.com/photo-1543872084-c7bd3822856f?q=80&w=1000&auto=format&fit=crop'); background-size: cover; background-position: center; z-index: -2; filter: brightness(0.6) contrast(1.2); }
+        
+        /* Оверлеи блокировки */
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,5,0.95); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
+        .overlay h1 { color: #e74c3c; font-size: 28px; margin-bottom: 15px; text-transform: uppercase; }
+        .overlay p { color: #aaa; font-size: 14px; }
+
         .snow-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: hidden; }
         .snowflake { position: absolute; top: -10px; background: white; border-radius: 50%; opacity: 0.8; filter: blur(1px); animation: fall linear infinite; }
         @keyframes fall { to { transform: translateY(105vh); } }
@@ -48,7 +54,6 @@
         .stat-card-val { font-size: 18px; font-weight: 800; color: #fff; }
         .stat-card-val span { font-size: 12px; color: #D4AF37; }
         
-        /* УРОВНИ */
         .level-nav { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 15px; margin-bottom: 15px; }
         .level-arrow { background: rgba(212, 175, 55, 0.2); border: 1px solid #D4AF37; color: #D4AF37; font-size: 20px; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; }
         .level-arrow:active { transform: scale(0.9); background: #D4AF37; color: #000; }
@@ -74,7 +79,7 @@
         .status-approved { color: #2ecc71; }
         .status-rejected { color: #e74c3c; }
         
-        .admin-tabs { display: flex; gap: 5px; margin-bottom: 15px; }
+        .admin-tabs { display: flex; gap: 5px; margin-bottom: 15px; flex-wrap: wrap; }
         .admin-tab { flex: 1; text-align: center; padding: 10px 5px; background: rgba(255,255,255,0.1); border-radius: 10px; font-size: 11px; cursor: pointer; }
         .admin-tab.active { background: #D4AF37; color: #000; font-weight: bold; }
         .admin-section { display: none; }
@@ -90,6 +95,16 @@
 <body>
     <div class="bg-village"></div>
     <div class="snow-container" id="snow-container"></div>
+
+    <!-- ОВЕРЛЕИ БЛОКИРОВКИ -->
+    <div id="overlay-banned" class="overlay">
+        <h1 data-lang="banned_title">Вы заблокированы</h1>
+        <p data-lang="banned_desc">Ваш аккаунт был забанен администрацией. Если вы считаете это ошибкой, свяжитесь с поддержкой.</p>
+    </div>
+    <div id="overlay-maint" class="overlay">
+        <h1 style="color:#D4AF37;" data-lang="maint_title">Технические работы</h1>
+        <p data-lang="maint_desc">Мы обновляем ферму. Пожалуйста, зайдите чуть позже.</p>
+    </div>
 
     <!-- ЭКРАН 1: МАЙНИНГ -->
     <div id="screen-mining" class="screen active">
@@ -132,7 +147,7 @@
         </div>
     </div>
 
-    <!-- ЭКРАН 3: УРОВНИ (СПИСОК С ПАГИНАЦИЕЙ) -->
+    <!-- ЭКРАН 3: УРОВНИ -->
     <div id="screen-levels" class="screen">
         <h2 style="color: #D4AF37; margin-bottom: 10px;" data-lang="levels_title">Уровни</h2>
         <div style="font-size: 12px; color: #aaa; margin-bottom: 15px;" data-lang="levels_desc">Уровень зависит от холда NEXA на кошельке.</div>
@@ -173,7 +188,7 @@
     <div id="screen-friends" class="screen">
         <h2 style="color: #D4AF37; margin-bottom: 20px;" data-lang="friends_title">Друзья</h2>
         <div class="input-group">
-            <label data-lang="friends_desc">Пригласи друга и получай бонусы</label>
+            <label data-lang="friends_desc">Пригласи друга и получай 10% от его майнинга!</label>
             <button class="btn-gold" onclick="shareLink()" data-lang="share_btn">Поделиться</button>
         </div>
     </div>
@@ -184,6 +199,7 @@
         <div class="admin-tabs">
             <div class="admin-tab active" onclick="switchAdminTab('withdrawals', this)" data-lang="tab_wds">Заявки</div>
             <div class="admin-tab" onclick="switchAdminTab('users', this)" data-lang="tab_users">Юзеры</div>
+            <div class="admin-tab" onclick="switchAdminTab('referrals', this)" data-lang="tab_refs">Рефералы</div>
             <div class="admin-tab" onclick="switchAdminTab('history', this)" data-lang="tab_hist">История</div>
             <div class="admin-tab" onclick="switchAdminTab('settings', this)" data-lang="tab_bot">Бот</div>
         </div>
@@ -194,6 +210,13 @@
                 <button class="btn-blue" onclick="searchUser()" data-lang="search_btn">Найти</button>
             </div>
             <div id="user-result"></div>
+        </div>
+        <div id="admin-referrals" class="admin-section">
+            <div class="input-group" style="padding: 10px;">
+                <input type="text" id="ref-search" placeholder="ID юзера">
+                <button class="btn-blue" onclick="loadReferrals()" data-lang="search_btn">Найти</button>
+            </div>
+            <div id="referral-list"></div>
         </div>
         <div id="admin-history" class="admin-section">
             <div class="input-group" style="padding: 10px;">
@@ -237,41 +260,43 @@
         let userData = { balance: 0, level: 1, real_balance: 0, is_farming: false, pending_reward: 0, price: 0, base_income: 0.000057, level_bonus: 0.05 };
         let currentLang = localStorage.getItem('nexa_lang') || 'ru';
         
-        // Пагинация уровней
         let currentLevelPage = 1;
         const LEVELS_PER_PAGE = 50;
         const MAX_LEVEL = 1000;
         const TOTAL_PAGES = Math.ceil(MAX_LEVEL / LEVELS_PER_PAGE);
 
-        // === СЛОВАРИ ПЕРЕВОДОВ ===
         const translations = {
             ru: {
+                banned_title: "Вы заблокированы", banned_desc: "Ваш аккаунт был забанен администрацией. Если вы считаете это ошибкой, свяжитесь с поддержкой.",
+                maint_title: "Технические работы", maint_desc: "Мы обновляем ферму. Пожалуйста, зайдите чуть позже.",
                 balance: "Игровой Баланс", level_hold: "Уровень (от холда)", per_hour: "⚡ В час", per_day: "📅 В день",
                 start_mining: "Начать майнинг", collect: "Собрать", hold_text: "Холд на кошельке:",
                 level_text: "Уровень", next_level: "До след.:",
                 buy_title: "Купить NEXA", price: "Текущий курс", buy_desc: "Купить токены за TON", buy_btn: "🚀 Купить на STON.fi",
-                levels_title: "Уровни", levels_desc: "Уровень зависит от холда NEXA на кошельке. Чем выше уровень, тем больше доход.",
+                levels_title: "Уровни", levels_desc: "Уровень зависит от холда NEXA на кошельке.",
                 withdraw_title: "Вывод средств", withdraw_desc: "Для проверки холда привяжите кошелек TON.",
                 withdraw_addr: "Куда вывести NEXA? (Введите адрес)", withdraw_amt: "Сумма вывода (Мин. 50,000 NEXA)",
                 withdraw_hold: "* Для вывода нужно иметь 20% от суммы в токенах на кошельке.", withdraw_btn: "Запросить вывод",
-                history_title: "История выводов", friends_title: "Друзья", friends_desc: "Пригласи друга и получай бонусы", share_btn: "Поделиться",
-                admin_title: "Админ-панель", tab_wds: "Заявки", tab_users: "Юзеры", tab_hist: "История", tab_bot: "Бот",
+                history_title: "История выводов", friends_title: "Друзья", friends_desc: "Пригласи друга и получай 10% от его майнинга!", share_btn: "Поделиться",
+                admin_title: "Админ-панель", tab_wds: "Заявки", tab_users: "Юзеры", tab_refs: "Рефералы", tab_hist: "История", tab_bot: "Бот",
                 search_btn: "Найти", maintenance: "Технические работы", base_income: "Базовая ставка (в сек)",
                 level_bonus: "Бонус за уровень (0.05 = +5%)", save_btn: "Сохранить настройки",
                 nav_mine: "Майнинг", nav_buy: "Обмен", nav_lvl: "Уровни", nav_wd: "Вывод", nav_fr: "Друзья", nav_adm: "Админ",
                 hold_req: "Холд:", inc_day: "NEXA/день:", mult: "Множ:"
             },
             en: {
+                banned_title: "You are banned", banned_desc: "Your account has been banned by the administration.",
+                maint_title: "Maintenance", maint_desc: "We are updating the farm. Please check back later.",
                 balance: "Game Balance", level_hold: "Level (from Hold)", per_hour: "⚡ Per hour", per_day: "📅 Per day",
                 start_mining: "Start Mining", collect: "Collect", hold_text: "Wallet Hold:",
                 level_text: "Level", next_level: "To next:",
                 buy_title: "Buy NEXA", price: "Current Price", buy_desc: "Buy tokens with TON", buy_btn: "🚀 Buy on STON.fi",
-                levels_title: "Levels", levels_desc: "Level depends on NEXA hold on your wallet. Higher level = more income.",
+                levels_title: "Levels", levels_desc: "Level depends on NEXA hold on your wallet.",
                 withdraw_title: "Withdraw", withdraw_desc: "Link TON wallet to verify hold.",
                 withdraw_addr: "Where to withdraw NEXA? (Enter address)", withdraw_amt: "Withdraw Amount (Min. 50,000 NEXA)",
                 withdraw_hold: "* You need 20% of the amount in tokens on your wallet to withdraw.", withdraw_btn: "Request Withdrawal",
-                history_title: "Withdrawal History", friends_title: "Friends", friends_desc: "Invite a friend and get bonuses", share_btn: "Share",
-                admin_title: "Admin Panel", tab_wds: "Requests", tab_users: "Users", tab_hist: "History", tab_bot: "Bot",
+                history_title: "Withdrawal History", friends_title: "Friends", friends_desc: "Invite a friend and get 10% of their mining!", share_btn: "Share",
+                admin_title: "Admin Panel", tab_wds: "Requests", tab_users: "Users", tab_refs: "Referrals", tab_hist: "History", tab_bot: "Bot",
                 search_btn: "Search", maintenance: "Maintenance Mode", base_income: "Base Rate (per sec)",
                 level_bonus: "Level Bonus (0.05 = +5%)", save_btn: "Save Settings",
                 nav_mine: "Mining", nav_buy: "Exchange", nav_lvl: "Levels", nav_wd: "Withdraw", nav_fr: "Friends", nav_adm: "Admin",
@@ -284,9 +309,7 @@
         function toggleLang() {
             currentLang = currentLang === 'ru' ? 'en' : 'ru';
             localStorage.setItem('nexa_lang', currentLang);
-            translateUI();
-            updateUI(); 
-            renderLevels();
+            translateUI(); updateUI(); renderLevels();
         }
 
         function translateUI() {
@@ -296,7 +319,6 @@
             });
         }
 
-        // Снег
         for(let i=0; i<40; i++) {
             let s = document.createElement('div'); s.className = 'snowflake';
             s.style.width = s.style.height = Math.random()*4+1+'px'; 
@@ -323,6 +345,7 @@
             el.classList.add('active');
             if(tabId === 'settings') loadSettings();
             if(tabId === 'history') loadAllHistory();
+            if(tabId === 'referrals') loadReferrals();
         }
 
         function copyText(text) {
@@ -347,6 +370,20 @@
         async function loadData() {
             try {
                 let res = await fetch(API_URL + '/api/login', { method: 'POST', headers: HEADERS });
+                
+                // ОБРАБОТКА БЛОКИРОВОК
+                if (res.status === 403) {
+                    let err = await res.json();
+                    if (err.detail === "banned") {
+                        document.getElementById('overlay-banned').style.display = 'flex';
+                        return;
+                    }
+                    if (err.detail === "maintenance") {
+                        document.getElementById('overlay-maint').style.display = 'flex';
+                        return;
+                    }
+                }
+
                 if (!res.ok) {
                     let err = await res.json();
                     return tg.showAlert("Error: " + (err.detail || "Server error"));
@@ -385,7 +422,6 @@
             }
         }
 
-        // ================= УРОВНИ (СПИСОК + ПАГИНАЦИЯ) =================
         function changeLevelPage(dir) {
             currentLevelPage += dir;
             if (currentLevelPage < 1) currentLevelPage = 1;
@@ -462,7 +498,9 @@
         }
 
         function shareLink() {
-            tg.openTelegramLink(`https://t.me/share/url?url=https://t.me/твой_бот&text=Join NEXA!`);
+            // Генерируем реферальную ссылку (замени твой_бот на юзернейм бота)
+            const refLink = `https://t.me/твой_бот/app?startapp=${userData.user_id}`;
+            tg.openTelegramLink(`https://t.me/share/url?url=${refLink}&text=${encodeURIComponent('Join NEXA and farm crypto!')}`);
         }
 
         // ================= АДМИНКА =================
@@ -487,6 +525,24 @@
                 </div>`;
             });
             document.getElementById('admin-list').innerHTML = html || '<div style="color:#666; text-align:center;">Empty</div>';
+        }
+
+        async function loadReferrals() {
+            let q = document.getElementById('ref-search').value;
+            let res = await fetch(API_URL + `/api/admin/referrals?search=${q}`, { headers: HEADERS });
+            let data = await res.json();
+            let html = '';
+            data.forEach(r => {
+                html += `<div class="history-item" style="flex-direction:column; align-items:flex-start;">
+                    <div style="color:#D4AF37; font-weight:bold; margin-bottom:5px;">Пригласил (ID): ${r.referrer_id}</div>
+                    <div style="font-size:11px; color:#fff; margin-bottom:2px;">Привел юзера (ID): ${r.referred_id}</div>
+                    <div style="display:flex; justify-content:space-between; width:100%; font-size:10px; color:#aaa; margin-top:5px;">
+                        <span>${r.date}</span>
+                        <span style="color:#2ecc71; font-weight:bold;">+${r.amount.toFixed(2)} NEXA</span>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('referral-list').innerHTML = html || '<div style="color:#666; text-align:center;">Нет рефералов</div>';
         }
 
         async function loadAllHistory() {
@@ -527,6 +583,7 @@
                 <div class="user-info-row"><span>TG ID:</span><span>${data.id}</span></div>
                 <div class="user-info-row"><span>Username:</span><span>${data.username || '-'}</span></div>
                 <div class="user-info-row"><span>IP:</span><span>${data.ip || '-'}</span></div>
+                <div class="user-info-row"><span>Referrer:</span><span>${data.referrer_id || '-'}</span></div>
                 <div class="user-info-row"><span>Wallet:</span><span>${data.wallet || '-'}</span></div>
                 <div class="user-info-row"><span>Game Bal:</span><span style="color:#D4AF37;">${data.game_balance.toFixed(2)}</span></div>
                 <div class="user-info-row"><span>Hold:</span><span style="color:#2ecc71;">${data.real_balance.toFixed(2)}</span></div>
@@ -601,7 +658,6 @@
 
         setInterval(loadData, 15000);
         
-        // Инициализация
         translateUI();
         loadData();
     </script>
