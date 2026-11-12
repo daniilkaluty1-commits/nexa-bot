@@ -23,6 +23,7 @@ class User(Base):
     is_banned = Column(Boolean, default=False)
     is_admin = Column(Boolean, default=False)
     ip_address = Column(String, nullable=True)
+    referrer_id = Column(Integer, nullable=True) # Кто пригласил
     
 class Withdrawal(Base):
     __tablename__ = "withdrawals"
@@ -40,19 +41,24 @@ class Setting(Base):
     base_income = Column(Float, default=0.000057)
     level_bonus = Column(Float, default=0.05)
 
+# ТАБЛИЦА ИСТОРИИ РЕФЕРАЛОВ
+class ReferralEarning(Base):
+    __tablename__ = "referral_earnings"
+    id = Column(Integer, primary_key=True, index=True)
+    referrer_id = Column(Integer) # Кто получил
+    referred_id = Column(Integer) # Кто принес
+    amount = Column(Float)        # Сколько получил
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
 Base.metadata.create_all(bind=engine)
 
 # === БЕЗОПАСНАЯ МИГРАЦИЯ ДЛЯ SQLITE ===
-# Добавляем новые колонки, если их нет (чтобы база не крашилась)
 try:
     with engine.begin() as conn:
-        conn.execute(text("ALTER TABLE users ADD COLUMN username VARCHAR"))
-        conn.execute(text("ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT 0"))
-        conn.execute(text("ALTER TABLE users ADD COLUMN ip_address VARCHAR"))
+        conn.execute(text("ALTER TABLE users ADD COLUMN referrer_id INTEGER"))
 except OperationalError:
-    pass # Если колонки уже есть, просто идем дальше
+    pass
 
-# Создаем дефолтные настройки, если их нет
 db = SessionLocal()
 if not db.query(Setting).first():
     db.add(Setting(maintenance=False, base_income=0.000057, level_bonus=0.05))
