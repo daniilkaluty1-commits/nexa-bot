@@ -1,6 +1,7 @@
-from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, DateTime
+from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, DateTime, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import OperationalError
 import datetime
 import os
 
@@ -36,10 +37,20 @@ class Setting(Base):
     __tablename__ = "settings"
     id = Column(Integer, primary_key=True, index=True)
     maintenance = Column(Boolean, default=False)
-    base_income = Column(Float, default=0.000057) # Базовая ставка в сек
-    level_bonus = Column(Float, default=0.05) # +5% за уровень
+    base_income = Column(Float, default=0.000057)
+    level_bonus = Column(Float, default=0.05)
 
 Base.metadata.create_all(bind=engine)
+
+# === БЕЗОПАСНАЯ МИГРАЦИЯ ДЛЯ SQLITE ===
+# Добавляем новые колонки, если их нет (чтобы база не крашилась)
+try:
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE users ADD COLUMN username VARCHAR"))
+        conn.execute(text("ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT 0"))
+        conn.execute(text("ALTER TABLE users ADD COLUMN ip_address VARCHAR"))
+except OperationalError:
+    pass # Если колонки уже есть, просто идем дальше
 
 # Создаем дефолтные настройки, если их нет
 db = SessionLocal()
