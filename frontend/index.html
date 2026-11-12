@@ -17,7 +17,6 @@
         
         .screen { display: none; flex: 1; flex-direction: column; padding: 20px; overflow-y: auto; padding-bottom: 100px; z-index: 10; }
         .screen.active { display: flex; }
-        
         .top-bar { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
         .avatar { width: 32px; height: 32px; border-radius: 50%; border: 1px solid #D4AF37; background: #111; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #D4AF37; }
         .app-title { font-size: 18px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; background: linear-gradient(180deg, #FFFFFF 0%, #D4AF37 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -28,11 +27,9 @@
         @keyframes glowPulse { from { transform: scale(0.9); opacity: 0.5; } to { transform: scale(1.1); opacity: 1; } }
         .nexa-coin { width: 220px; height: 220px; border-radius: 50%; object-fit: cover; opacity: 0.85; filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.6)); animation: floatCoin 4s ease-in-out infinite; z-index: 2; }
         @keyframes floatCoin { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-15px) rotate(2deg); } }
-        
         .collect-btn { background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(212, 175, 55, 0.5) 100%); backdrop-filter: blur(10px); color: #fff; font-weight: 800; font-size: 18px; padding: 18px 40px; border-radius: 30px; border: 1px solid rgba(212, 175, 55, 0.5); width: 100%; max-width: 320px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2); transition: 0.2s; }
         .collect-btn:active { transform: scale(0.95); }
         .collect-btn.farming { background: rgba(20, 20, 20, 0.6); border: 1px solid #555; color: #888; box-shadow: none; }
-        
         .balance-title { font-size: 12px; color: #999; text-align: center; margin-top: 10px; text-transform: uppercase; letter-spacing: 2px;}
         .balance-value { font-size: 46px; font-weight: 900; text-align: center; color: #D4AF37; text-shadow: 0 0 20px rgba(212,175,55,0.3); }
         .real-balance { font-size: 12px; text-align: center; color: #2ecc71; margin-top: 5px; font-weight: 600;}
@@ -41,7 +38,6 @@
         .level-top { display: flex; justify-content: space-between; font-size: 12px; color: #aaa; margin-bottom: 8px; font-weight: 600;}
         .progress-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
         .progress-fill { height: 100%; background: linear-gradient(90deg, #D4AF37, #FFDF00); width: 0%; transition: 0.3s; border-radius: 3px; box-shadow: 0 0 10px #D4AF37;}
-        
         .stats-grid { display: flex; gap: 10px; margin-top: 15px; }
         .stat-card { flex: 1; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 15px; text-align: center; backdrop-filter: blur(10px); }
         .stat-card-title { font-size: 11px; color: #999; margin-bottom: 5px; text-transform: uppercase;}
@@ -55,21 +51,27 @@
         
         .input-group { display: flex; flex-direction: column; gap: 8px; background: rgba(0,0,0,0.4); padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; backdrop-filter: blur(10px);}
         .input-group input { background: rgba(255,255,255,0.05); border: 1px solid rgba(212, 175, 55, 0.3); padding: 15px; border-radius: 12px; color: white; font-size: 16px; outline: none; }
-        .btn-gold { background: linear-gradient(135deg, #D4AF37, #FFDF00); color: #000; padding: 15px; border-radius: 15px; border: none; font-weight: 800; font-size: 16px; cursor: pointer; width: 100%; box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3); }
-        .btn-blue { background: linear-gradient(135deg, #0088cc, #0055ff); color: #fff; padding: 15px; border-radius: 15px; border: none; font-weight: 800; font-size: 16px; cursor: pointer; width: 100%; box-shadow: 0 5px 15px rgba(0, 136, 204, 0.3); margin-top: 10px;}
+        .btn-gold { background: linear-gradient(135deg, #D4AF37, #FFDF00); color: #000; padding: 12px; border-radius: 12px; border: none; font-weight: 800; font-size: 14px; cursor: pointer; width: 100%; box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3); margin-top: 5px;}
+        .btn-blue { background: linear-gradient(135deg, #0088cc, #0055ff); color: #fff; padding: 12px; border-radius: 12px; border: none; font-weight: 800; font-size: 14px; cursor: pointer; width: 100%; box-shadow: 0 5px 15px rgba(0, 136, 204, 0.3); margin-top: 5px;}
+        .btn-red { background: linear-gradient(135deg, #e74c3c, #c0392b); color: #fff; padding: 12px; border-radius: 12px; border: none; font-weight: 800; font-size: 14px; cursor: pointer; width: 100%; box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3); margin-top: 5px;}
         
         .history-item { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; border: 1px solid rgba(255,255,255,0.05);}
         .status-pending { color: #f1c40f; }
         .status-approved { color: #2ecc71; }
         .status-rejected { color: #e74c3c; }
-        .admin-item { background: rgba(212, 175, 55, 0.05); border: 1px solid rgba(212, 175, 55, 0.3); padding: 15px; border-radius: 15px; margin-bottom: 10px;}
         
-        /* Стили для вкладки Уровни */
-        .lvl-row { display: flex; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 8px; font-size: 13px; border: 1px solid rgba(255,255,255,0.05);}
-        .lvl-row.active { border-color: #D4AF37; background: rgba(212, 175, 55, 0.1);}
-        .lvl-col { display: flex; flex-direction: column; gap: 4px;}
-        .lvl-title { font-weight: 800; color: #D4AF37; }
-        .lvl-sub { font-size: 11px; color: #aaa; }
+        /* АДМИНКА */
+        .admin-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+        .admin-tab { flex: 1; text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 10px; font-size: 12px; cursor: pointer; }
+        .admin-tab.active { background: #D4AF37; color: #000; font-weight: bold; }
+        .admin-section { display: none; }
+        .admin-section.active { display: block; }
+        
+        .user-card { background: rgba(212, 175, 55, 0.05); border: 1px solid #D4AF37; border-radius: 15px; padding: 15px; margin-bottom: 15px; }
+        .user-info-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; }
+        .user-info-row span:first-child { color: #888; }
+        .user-info-row span:last-child { font-weight: bold; word-break: break-all; max-width: 60%; text-align: right;}
+        .tx-item { font-size: 10px; color: #aaa; margin-top: 5px; border-top: 1px dashed #333; padding-top: 5px; }
     </style>
 </head>
 <body>
@@ -79,28 +81,18 @@
     <!-- ЭКРАН 1: МАЙНИНГ -->
     <div id="screen-mining" class="screen active">
         <div class="top-bar"><div class="avatar">N</div><div class="app-title">NEXA COIN</div></div>
-        
         <div class="mining-container">
-            <div class="coin-wrapper">
-                <div class="coin-glow"></div>
-                <img src="logo.jpg" class="nexa-coin" alt="NEXA">
-            </div>
-            <button class="collect-btn" id="action-btn" onclick="handleFarm()">
-                <span id="btn-text">Начать майнинг</span>
-                <span>›</span>
-            </button>
+            <div class="coin-wrapper"><div class="coin-glow"></div><img src="logo.jpg" class="nexa-coin" alt="NEXA"></div>
+            <button class="collect-btn" id="action-btn" onclick="handleFarm()"><span id="btn-text">Начать майнинг</span><span>›</span></button>
         </div>
-
         <div class="balance-title">Игровой Баланс</div>
         <div class="balance-value" id="balance">0.000000</div>
         <div class="real-balance" id="real-balance">Холд на кошельке: 0 NEXA</div>
-
         <div class="level-box">
             <div class="level-top"><span>Уровень (от холда)</span><span id="level-pct">0%</span></div>
             <div class="progress-bar"><div class="progress-fill" id="level-fill"></div></div>
             <div class="level-top" style="margin-top: 8px; font-size: 11px; color: #888;"><span id="level-text">1 ур.</span><span id="level-next">До след.: 50,000</span></div>
         </div>
-
         <div class="stats-grid">
             <div class="stat-card"><div class="stat-card-title">⚡ В час</div><div class="stat-card-val" id="rate-hour">0 <span>NEXA</span></div></div>
             <div class="stat-card"><div class="stat-card-title">📅 В день</div><div class="stat-card-val" id="rate-day">0 <span>NEXA</span></div></div>
@@ -114,10 +106,9 @@
             <div style="font-size: 14px; color: #aaa;">Текущий курс</div>
             <div style="font-size: 28px; font-weight: 900; color: #2ecc71;" id="token-price">$0.0000</div>
         </div>
-        
         <div class="input-group">
             <label>Купить токены за TON</label>
-            <div style="font-size: 12px; color: #888; margin-bottom: 10px;">Покупка происходит напрямую через пул ликвидности STON.fi. После покупки токенов на кошельке, ваш уровень в игре повысится автоматически.</div>
+            <div style="font-size: 12px; color: #888; margin-bottom: 10px;">Покупка происходит напрямую через пул STON.fi. После покупки токенов на кошельке, ваш уровень повысится.</div>
             <button class="btn-blue" onclick="buyToken()">🚀 Купить на STON.fi</button>
         </div>
     </div>
@@ -125,22 +116,20 @@
     <!-- ЭКРАН 3: УРОВНИ -->
     <div id="screen-levels" class="screen">
         <h2 style="color: #D4AF37; margin-bottom: 10px;">Уровни</h2>
-        <div style="font-size: 12px; color: #aaa; margin-bottom: 20px;">Уровень зависит от количества NEXA на вашем кошельке (холд). Чем выше уровень, тем больше пассивный доход.</div>
+        <div style="font-size: 12px; color: #aaa; margin-bottom: 20px;">Уровень зависит от холда NEXA на кошельке. Чем выше уровень, тем больше пассивный доход.</div>
         <div id="levels-list"></div>
     </div>
 
-    <!-- ЭКРАН 4: ВЫВОД (КОШЕЛЕК) -->
+    <!-- ЭКРАН 4: ВЫВОД -->
     <div id="screen-wallet" class="screen">
         <h2 style="color: #D4AF37; margin-bottom: 20px;">Вывод средств</h2>
         <div id="ton-connect" style="display: flex; justify-content: center; margin-bottom: 15px;"></div>
-        
         <div class="input-group">
             <label>Сумма вывода (Мин. 50,000 NEXA)</label>
             <input type="number" id="w-amount" value="50000">
-            <div style="font-size: 11px; color: #e74c3c; margin-bottom: 5px;">* Для вывода нужно иметь 20% от суммы вывода в токенах на привязанном кошельке.</div>
+            <div style="font-size: 11px; color: #e74c3c; margin-bottom: 5px;">* Для вывода нужно иметь 20% от суммы вывода в токенах на кошельке.</div>
             <button class="btn-gold" onclick="requestWithdraw()">Запросить вывод</button>
         </div>
-        
         <h3 style="margin-top: 20px; margin-bottom: 10px; font-size: 14px; color: #aaa;">История выводов</h3>
         <div id="history-list"></div>
     </div>
@@ -150,16 +139,48 @@
         <h2 style="color: #D4AF37; margin-bottom: 20px;">Друзья</h2>
         <div class="input-group">
             <label>Пригласи друга и получай бонусы</label>
-            <div style="font-size: 12px; color: #888; margin-bottom: 10px;">За каждого приглашенного друга вы получаете бонус к скорости майнинга.</div>
             <button class="btn-gold" onclick="shareLink()">Поделиться</button>
         </div>
     </div>
 
     <!-- ЭКРАН 6: АДМИНКА -->
     <div id="screen-admin" class="screen">
-        <h2 style="color: #D4AF37; margin-bottom: 20px;">Админ-панель</h2>
-        <h3 style="font-size: 14px; margin-bottom: 10px; color:#aaa;">Активные заявки:</h3>
-        <div id="admin-list"></div>
+        <h2 style="color: #D4AF37; margin-bottom: 15px;">Админ-панель</h2>
+        
+        <div class="admin-tabs">
+            <div class="admin-tab active" onclick="switchAdminTab('withdrawals', this)">Заявки</div>
+            <div class="admin-tab" onclick="switchAdminTab('users', this)">Юзеры</div>
+            <div class="admin-tab" onclick="switchAdminTab('settings', this)">Бот</div>
+        </div>
+
+        <!-- Вкладка 1: Заявки -->
+        <div id="admin-withdrawals" class="admin-section active">
+            <h3 style="font-size: 14px; margin-bottom: 10px; color:#aaa;">Активные заявки:</h3>
+            <div id="admin-list"></div>
+        </div>
+
+        <!-- Вкладка 2: Юзеры -->
+        <div id="admin-users" class="admin-section">
+            <div class="input-group" style="padding: 10px;">
+                <input type="text" id="search-query" placeholder="TG ID или адрес кошелька">
+                <button class="btn-blue" onclick="searchUser()">Найти</button>
+            </div>
+            <div id="user-result"></div>
+        </div>
+
+        <!-- Вкладка 3: Настройки -->
+        <div id="admin-settings" class="admin-section">
+            <div class="input-group">
+                <label style="display:flex; justify-content:space-between; align-items:center;">
+                    Технические работы <input type="checkbox" id="s-maintenance" style="width:20px; height:20px;">
+                </label>
+                <label>Базовая ставка (в сек)</label>
+                <input type="number" id="s-base-income" step="0.000001">
+                <label>Бонус за уровень (0.05 = +5%)</label>
+                <input type="number" id="s-level-bonus" step="0.01">
+                <button class="btn-gold" onclick="saveSettings()">Сохранить настройки</button>
+            </div>
+        </div>
     </div>
 
     <!-- НАВИГАЦИЯ -->
@@ -182,7 +203,6 @@
         
         let userData = { balance: 0, level: 1, real_balance: 0, is_farming: false, pending_reward: 0, price: 0 };
 
-        // Снег
         for(let i=0; i<40; i++) {
             let s = document.createElement('div'); s.className = 'snowflake';
             s.style.width = s.style.height = Math.random()*4+1+'px'; 
@@ -199,8 +219,16 @@
             el.classList.add('active');
             
             if(tabId === 'wallet') loadHistory();
-            if(tabId === 'admin') loadAdminData();
             if(tabId === 'levels') renderLevels();
+            if(tabId === 'admin') loadAdminData();
+        }
+
+        function switchAdminTab(tabId, el) {
+            document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.admin-tab').forEach(n => n.classList.remove('active'));
+            document.getElementById('admin-' + tabId).classList.add('active');
+            el.classList.add('active');
+            if(tabId === 'settings') loadSettings();
         }
 
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
@@ -209,9 +237,7 @@
         });
         
         tonConnectUI.onStatusChange(wallet => {
-            if (wallet) {
-                fetch(API_URL + '/api/set_wallet', { method: 'POST', headers: HEADERS, body: JSON.stringify({ wallet: wallet.account.address }) });
-            }
+            if (wallet) fetch(API_URL + '/api/set_wallet', { method: 'POST', headers: HEADERS, body: JSON.stringify({ wallet: wallet.account.address }) });
         });
 
         async function loadData() {
@@ -232,12 +258,10 @@
             document.getElementById('real-balance').innerText = `Холд на кошельке: ${userData.real_balance.toFixed(0)} NEXA`;
             document.getElementById('token-price').innerText = `$${userData.price.toFixed(6)}`;
             
-            // Доход
             let rate = 0.000057 * (1 + (userData.level - 1) * 0.05);
             document.getElementById('rate-hour').innerHTML = `${(rate * 3600).toFixed(2)} <span>NEXA</span>`;
             document.getElementById('rate-day').innerHTML = `${(rate * 86400).toFixed(2)} <span>NEXA</span>`;
             
-            // Прогресс уровня (от РЕАЛЬНОГО БАЛАНСА)
             let nextLevelCost = userData.level * 50000;
             let progress = (userData.real_balance / nextLevelCost) * 100;
             if (progress > 100) progress = 100;
@@ -247,7 +271,6 @@
             document.getElementById('level-text').innerText = "Уровень " + userData.level;
             document.getElementById('level-next').innerText = `До след.: ${(nextLevelCost - userData.real_balance).toFixed(0)}`;
             
-            // Кнопка
             let btn = document.getElementById('action-btn');
             if (userData.is_farming) { 
                 btn.classList.add('farming'); 
@@ -258,47 +281,37 @@
             }
         }
 
-        // Отрисовка вкладки уровней (1-20)
         function renderLevels() {
             let html = '';
-            let baseRate = 0.000057;
             for (let lvl = 1; lvl <= 20; lvl++) {
                 let hold = (lvl - 1) * 50000;
-                let rate = baseRate * (1 + (lvl - 1) * 0.05);
+                let rate = 0.000057 * (1 + (lvl - 1) * 0.05);
                 let daily = rate * 86400;
                 let isActive = (userData.level === lvl) ? 'active' : '';
-                
                 html += `<div class="lvl-row ${isActive}">
-                    <div class="lvl-col">
-                        <div class="lvl-title">Уровень ${lvl}</div>
-                        <div class="lvl-sub">Холд: ${hold.toLocaleString()} NEXA</div>
-                    </div>
-                    <div class="lvl-col" style="text-align: right;">
-                        <div style="color: #2ecc71; font-weight: bold;">${daily.toFixed(2)} NEXA/день</div>
-                        <div class="lvl-sub">+5% к скорости</div>
-                    </div>
+                    <div class="lvl-col"><div class="lvl-title">Уровень ${lvl}</div><div class="lvl-sub">Холд: ${hold.toLocaleString()} NEXA</div></div>
+                    <div class="lvl-col" style="text-align: right;"><div style="color: #2ecc71; font-weight: bold;">${daily.toFixed(2)} NEXA/день</div><div class="lvl-sub">+5% к скорости</div></div>
                 </div>`;
             }
             document.getElementById('levels-list').innerHTML = html;
         }
 
-        function buyToken() {
-            tg.openLink(`https://app.ston.fi/swap?ft=TON&tt=${TOKEN_CONTRACT}`);
-        }
+        function buyToken() { tg.openLink(`https://app.ston.fi/swap?ft=TON&tt=${TOKEN_CONTRACT}`); }
 
         async function handleFarm() {
             let ep = userData.is_farming ? '/api/claim' : '/api/start_farm';
             try {
                 let res = await fetch(API_URL + ep, { method: 'POST', headers: HEADERS });
-                if(!res.ok) tg.showAlert("Ошибка сервера");
-                await loadData();
+                if(!res.ok) {
+                    let e = await res.json();
+                    tg.showAlert(e.detail || "Ошибка");
+                } else { await loadData(); }
             } catch(e) { tg.showAlert("Ошибка сети!"); }
         }
 
         async function requestWithdraw() {
             let amt = parseFloat(document.getElementById('w-amount').value);
             if(isNaN(amt) || amt < 50000) return tg.showAlert("Минимум 50 000 NEXA");
-            
             try {
                 let res = await fetch(API_URL + '/api/withdraw', { method: 'POST', headers: HEADERS, body: JSON.stringify({ amount: amt, wallet: "ton" }) });
                 let data = await res.json();
@@ -318,29 +331,112 @@
             document.getElementById('history-list').innerHTML = html || '<div style="color:#666; text-align:center;">Нет выводов</div>';
         }
 
+        function shareLink() {
+            tg.openTelegramLink(`https://t.me/share/url?url=https://t.me/твой_бот&text=Заходи в NEXA!`);
+        }
+
+        // ================= АДМИНКА =================
         async function loadAdminData() {
+            loadWithdrawals();
+        }
+
+        async function loadWithdrawals() {
             let res = await fetch(API_URL + '/api/admin/withdrawals', { headers: HEADERS });
             let data = await res.json();
             let html = '';
             data.forEach(w => {
-                html += `<div class="admin-item">
-                    <div>Юзер: ${w.user_id}<br>Сумма: ${w.amount} NEXA<br>Кошелек: ${w.wallet}</div>
+                html += `<div class="user-card">
+                    <div class="user-info-row"><span>ID юзера:</span><span>${w.user_id}</span></div>
+                    <div class="user-info-row"><span>Сумма:</span><span>${w.amount} NEXA</span></div>
+                    <div class="user-info-row"><span>Кошелек:</span><span>${w.wallet}</span></div>
                     <div style="margin-top: 10px; display:flex; gap: 10px;">
-                        <button class="btn-gold" style="padding: 8px;" onclick="adminAction(${w.id}, 'approve')">✅ Выплатить</button>
-                        <button class="btn-gold" style="padding: 8px; background: #e74c3c; box-shadow:none;" onclick="adminAction(${w.id}, 'reject')">❌ Отклонить</button>
+                        <button class="btn-gold" onclick="adminAction(${w.id}, 'approve')">✅ Выплатить</button>
+                        <button class="btn-red" onclick="adminAction(${w.id}, 'reject')">❌ Отклонить</button>
                     </div>
                 </div>`;
             });
-            document.getElementById('admin-list').innerHTML = html || '<div style="color:#666;">Нет активных заявок</div>';
+            document.getElementById('admin-list').innerHTML = html || '<div style="color:#666; text-align:center;">Нет активных заявок</div>';
         }
 
         async function adminAction(id, act) {
             await fetch(API_URL + '/api/admin/action', { method: 'POST', headers: HEADERS, body: JSON.stringify({ wd_id: id, action: act }) });
-            loadAdminData();
+            loadWithdrawals();
         }
 
-        function shareLink() {
-            tg.openTelegramLink(`https://t.me/share/url?url=https://t.me/твой_бот&text=Заходи в NEXA и фарми крипту!`);
+        async function searchUser() {
+            let q = document.getElementById('search-query').value;
+            if(!q) return;
+            let res = await fetch(API_URL + `/api/admin/search_user?query=${q}`, { headers: HEADERS });
+            let data = await res.json();
+            
+            if(!data.found) {
+                document.getElementById('user-result').innerHTML = '<div style="color:#e74c3c; text-align:center;">Юзер не найден</div>';
+                return;
+            }
+            
+            let txsHtml = data.txs.map(t => `<div class="tx-item">${t.time}: ${t.text}</div>`).join('') || '<div class="tx-item">Нет транзакций</div>';
+            
+            let html = `<div class="user-card">
+                <div class="user-info-row"><span>TG ID:</span><span>${data.id}</span></div>
+                <div class="user-info-row"><span>Username:</span><span>${data.username || '-'}</span></div>
+                <div class="user-info-row"><span>IP:</span><span>${data.ip || '-'}</span></div>
+                <div class="user-info-row"><span>Кошелек:</span><span>${data.wallet || '-'}</span></div>
+                <div class="user-info-row"><span>Игровой баш:</span><span style="color:#D4AF37;">${data.game_balance.toFixed(2)}</span></div>
+                <div class="user-info-row"><span>Холд:</span><span style="color:#2ecc71;">${data.real_balance.toFixed(2)}</span></div>
+                <div class="user-info-row"><span>Статус:</span><span style="color:${data.is_banned ? '#e74c3c':'#2ecc71'}">${data.is_banned ? 'ЗАБАНЕН':'АКТИВЕН'}</span></div>
+                <div class="user-info-row"><span>Права:</span><span style="color:${data.is_admin ? '#D4AF37':'#888'}">${data.is_admin ? 'АДМИН':'ЮЗЕР'}</span></div>
+                
+                <div style="display:flex; gap:5px; margin-top: 15px;">
+                    <input type="number" id="adm-amount" placeholder="Сумма" style="width:50%; background:#111; border:1px solid #333; color:white; padding:5px; border-radius:5px;">
+                    <button class="btn-gold" style="margin:0;" onclick="editBalance(${data.id}, true)">+</button>
+                    <button class="btn-red" style="margin:0;" onclick="editBalance(${data.id}, false)">-</button>
+                </div>
+                
+                <div style="display:flex; gap:5px; margin-top: 10px;">
+                    <button class="btn-red" onclick="toggleBan(${data.id})">${data.is_banned ? 'Разбанить' : 'Забанить'}</button>
+                    <button class="btn-blue" onclick="toggleAdmin(${data.id}, ${!data.is_admin})">${data.is_admin ? 'Снять админку' : 'Выдать админку'}</button>
+                </div>
+                
+                <div style="margin-top: 15px; font-size: 11px; color:#aaa;">История транзакций кошелька:</div>
+                ${txsHtml}
+            </div>`;
+            document.getElementById('user-result').innerHTML = html;
+        }
+
+        async function editBalance(id, isAdd) {
+            let amt = parseFloat(document.getElementById('adm-amount').value);
+            if(!amt) return;
+            await fetch(API_URL + '/api/admin/edit_balance', { method: 'POST', headers: HEADERS, body: JSON.stringify({ target_id: id, amount: amt, is_add: isAdd }) });
+            searchUser();
+        }
+
+        async function toggleBan(id) {
+            await fetch(API_URL + '/api/admin/toggle_ban', { method: 'POST', headers: HEADERS, body: JSON.stringify({ target_id: id, is_admin: false }) });
+            searchUser();
+        }
+
+        async function toggleAdmin(id, isAdm) {
+            try {
+                let res = await fetch(API_URL + '/api/admin/toggle_admin', { method: 'POST', headers: HEADERS, body: JSON.stringify({ target_id: id, is_admin: isAdm }) });
+                if(!res.ok) throw new Error("Нет прав");
+                searchUser();
+            } catch(e) { tg.showAlert("Только главный админ может выдавать права"); }
+        }
+
+        async function loadSettings() {
+            let res = await fetch(API_URL + '/api/admin/settings', { headers: HEADERS });
+            let data = await res.json();
+            document.getElementById('s-maintenance').checked = data.maintenance;
+            document.getElementById('s-base-income').value = data.base_income;
+            document.getElementById('s-level-bonus').value = data.level_bonus;
+        }
+
+        async function saveSettings() {
+            let m = document.getElementById('s-maintenance').checked;
+            let bi = parseFloat(document.getElementById('s-base-income').value);
+            let lb = parseFloat(document.getElementById('s-level-bonus').value);
+            await fetch(API_URL + '/api/admin/settings', { method: 'POST', headers: HEADERS, body: JSON.stringify({ maintenance: m, base_income: bi, level_bonus: lb }) });
+            tg.showAlert("Настройки сохранены!");
         }
 
         setInterval(() => {
