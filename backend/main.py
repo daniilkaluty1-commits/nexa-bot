@@ -20,7 +20,6 @@ app.add_middleware(
     allow_methods=["*"], allow_headers=["*"],
 )
 
-# Проверка, что сервер жив
 @app.get("/")
 def read_root():
     return {"status": "ok", "message": "NEXA API is running"}
@@ -60,8 +59,10 @@ def get_real_wallet_balance(wallet_address):
             balance_cache[wallet_address] = {"balance": bal, "last_update": now}
             print(f"DEBUG: Кошелек {wallet_address} | Баланс: {bal}")
             return bal
+        elif res.status_code == 404:
+            return 0.0
         else:
-            print(f"DEBUG TonAPI: Ошибка {res.status_code} - {res.text}")
+            print(f"DEBUG TonAPI Ошибка: {res.status_code} - {res.text}")
     except Exception as e:
         print(f"ОШИБКА TonAPI: {e}")
     return 0.0
@@ -115,16 +116,17 @@ def login(x_init_data: str = Header(None)):
         pending_reward = elapsed * 0.000057 * multiplier
         
     db.commit()
-    db.close()
     
-    price = get_token_price()
-    
-    return {
+    # СОБИРАЕМ ДАННЫЕ ДО ЗАКРЫТИЯ БАЗЫ
+    response_data = {
         "user_id": user.id, "balance": user.balance, "level": user.level,
         "wallet": user.wallet_address, "real_balance": real_balance,
         "is_farming": user.is_farming, "pending_reward": pending_reward, 
-        "is_admin": user.id == ADMIN_ID, "price": price
+        "is_admin": user.id == ADMIN_ID, "price": get_token_price()
     }
+    db.close()
+    
+    return response_data
 
 @app.post("/api/start_farm")
 def start_farm(x_init_data: str = Header(None)):
@@ -164,7 +166,6 @@ def set_wallet(req: WalletRequest, x_init_data: str = Header(None)):
     user.wallet_address = req.wallet
     db.commit()
     db.close()
-    print(f"DEBUG: Пользователь {user_id} привязал кошелек {req.wallet}")
     return {"status": "ok"}
 
 @app.post("/api/withdraw")
@@ -200,8 +201,10 @@ def history(x_init_data: str = Header(None)):
     user_id = verify_telegram_data(x_init_data)
     db = SessionLocal()
     wds = db.query(Withdrawal).filter(Withdrawal.user_id == user_id).order_by(Withdrawal.id.desc()).all()
+    
+    res = [{"id": w.id, "amount": w.amount, "status": w.status, "date": w.created_at.strftime("%d.%m.%Y %H:%M")} for w in wds]
     db.close()
-    return [{"id": w.id, "amount": w.amount, "status": w.status, "date": w.created_at.strftime("%d.%m.%Y %H:%M")} for w in wds]
+    return res
 
 @app.get("/api/admin/withdrawals")
 def admin_wds(x_init_data: str = Header(None)):
@@ -209,8 +212,10 @@ def admin_wds(x_init_data: str = Header(None)):
     if user_id != ADMIN_ID: raise HTTPException(status_code=403, detail="Нет доступа")
     db = SessionLocal()
     wds = db.query(Withdrawal).filter(Withdrawal.status == "pending").all()
+    
+    res = [{"id": w.id, "user_id": w.user_id, "amount": w.amount, "wallet": w.wallet, "date": w.created_at.strftime("%d.%m %H:%M")} for w in wds]
     db.close()
-    return [{"id": w.id, "user_id": w.user_id, "amount": w.amount, "wallet": w.wallet, "date": w.created_at.strftime("%d.%m %H:%M")} for w in wds]
+    return res
 
 @app.post("/api/admin/action")
 def admin_action(req: AdminAction, x_init_data: str = Header(None)):
