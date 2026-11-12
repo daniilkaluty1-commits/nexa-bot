@@ -122,14 +122,24 @@
     </div>
 
     <div id="screen-wallet" class="screen">
-        <h2 style="color: #D4AF37; margin-bottom: 20px;">Вывод средств</h2>
-        <div id="ton-connect" style="display: flex; justify-content: center; margin-bottom: 15px;"></div>
+        <h2 style="color: #D4AF37; margin-bottom: 10px;">Вывод средств</h2>
+        <div style="font-size: 12px; color: #aaa; margin-bottom: 15px;">Для проверки холда привяжите кошелек TON, с которого покупали NEXA.</div>
+        
+        <div id="ton-connect" style="display: flex; justify-content: center; margin-bottom: 5px;"></div>
+        <button class="btn-red" onclick="unlinkWallet()" style="margin-bottom: 15px;">Отвязать кошелек</button>
+
+        <div class="input-group">
+            <label>Куда вывести NEXA? (Введите адрес)</label>
+            <input type="text" id="withdraw-wallet" placeholder="Например: UQD... или EQC...">
+        </div>
+
         <div class="input-group">
             <label>Сумма вывода (Мин. 50,000 NEXA)</label>
             <input type="number" id="w-amount" value="50000">
-            <div style="font-size: 11px; color: #e74c3c; margin-bottom: 5px;">* Для вывода нужно иметь 20% от суммы вывода в токенах на кошельке.</div>
+            <div style="font-size: 11px; color: #e74c3c; margin-bottom: 5px;">* Для вывода нужно иметь 20% от суммы вывода в токенах на привязанном кошельке.</div>
             <button class="btn-gold" onclick="requestWithdraw()">Запросить вывод</button>
         </div>
+        
         <h3 style="margin-top: 20px; margin-bottom: 10px; font-size: 14px; color: #aaa;">История выводов</h3>
         <div id="history-list"></div>
     </div>
@@ -235,7 +245,6 @@
         
         tonConnectUI.onStatusChange(wallet => {
             if (wallet) {
-                // ЗАЩИТА ОТ ДУРАКА: Нельзя привязать контракт токена
                 if (wallet.account.address === TOKEN_CONTRACT) {
                     tg.showAlert("Ошибка: Вы привязали контракт токена вместо своего кошелька!");
                     return;
@@ -245,6 +254,13 @@
                 fetch(API_URL + '/api/unlink_wallet', { method: 'POST', headers: HEADERS }).then(() => loadData());
             }
         });
+
+        // Кнопка ручной отвязки
+        async function unlinkWallet() {
+            if(confirm('Отвязать кошелек? Холд обнулится.')) {
+                await tonConnectUI.disconnect();
+            }
+        }
 
         async function loadData() {
             try {
@@ -317,11 +333,15 @@
 
         async function requestWithdraw() {
             let amt = parseFloat(document.getElementById('w-amount').value);
+            let wWallet = document.getElementById('withdraw-wallet').value.trim();
+            
             if(isNaN(amt) || amt < 50000) return tg.showAlert("Минимум 50 000 NEXA");
+            if(!wWallet) return tg.showAlert("Введите адрес кошелька для получения!");
+            
             try {
-                let res = await fetch(API_URL + '/api/withdraw', { method: 'POST', headers: HEADERS, body: JSON.stringify({ amount: amt }) });
+                let res = await fetch(API_URL + '/api/withdraw', { method: 'POST', headers: HEADERS, body: JSON.stringify({ amount: amt, withdraw_wallet: wWallet }) });
                 let data = await res.json();
-                if (res.ok) { tg.showAlert("Заявка создана!"); loadData(); loadHistory(); }
+                if (res.ok) { tg.showAlert("Заявка создана!"); loadData(); loadHistory(); document.getElementById('withdraw-wallet').value = ''; }
                 else { tg.showAlert(data.detail || "Ошибка вывода"); }
             } catch(e) { tg.showAlert("Ошибка сети!"); }
         }
@@ -351,7 +371,7 @@
                 html += `<div class="user-card">
                     <div class="user-info-row"><span>ID юзера:</span><span>${w.user_id}</span></div>
                     <div class="user-info-row"><span>Сумма:</span><span>${w.amount} NEXA</span></div>
-                    <div class="user-info-row"><span style="color:#D4AF37;">Кошелек:</span><span style="color:#D4AF37; font-size:11px;">${w.wallet}</span></div>
+                    <div class="user-info-row"><span style="color:#D4AF37;">Куда вывести:</span><span style="color:#D4AF37; font-size:11px;">${w.wallet}</span></div>
                     <div style="margin-top: 10px; display:flex; gap: 10px;">
                         <button class="btn-gold" onclick="adminAction(${w.id}, 'approve')">✅ Выплатить</button>
                         <button class="btn-red" onclick="adminAction(${w.id}, 'reject')">❌ Отклонить</button>
@@ -371,7 +391,7 @@
                 let stColor = w.status === 'pending' ? '#f1c40f' : (w.status === 'approved' ? '#2ecc71' : '#e74c3c');
                 html += `<div class="history-item" style="flex-direction:column; align-items:flex-start;">
                     <div style="color:#D4AF37; font-weight:bold; margin-bottom:5px;">ID: ${w.user_id}</div>
-                    <div style="font-size:10px; color:#aaa; margin-bottom:5px;">${w.date} | ${w.wallet}</div>
+                    <div style="font-size:10px; color:#aaa; margin-bottom:5px;">${w.date} | Адрес: ${w.wallet}</div>
                     <div style="display:flex; justify-content:space-between; width:100%;">
                         <span>${w.amount} NEXA</span>
                         <span style="color:${stColor}; font-weight:bold;">${st}</span>
@@ -401,7 +421,7 @@
                 <div class="user-info-row"><span>TG ID:</span><span>${data.id}</span></div>
                 <div class="user-info-row"><span>Username:</span><span>${data.username || '-'}</span></div>
                 <div class="user-info-row"><span>IP:</span><span>${data.ip || '-'}</span></div>
-                <div class="user-info-row"><span>Кошелек:</span><span>${data.wallet || '-'}</span></div>
+                <div class="user-info-row"><span>Кошелек (холд):</span><span>${data.wallet || '-'}</span></div>
                 <div class="user-info-row"><span>Игровой баш:</span><span style="color:#D4AF37;">${data.game_balance.toFixed(2)}</span></div>
                 <div class="user-info-row"><span>Холд:</span><span style="color:#2ecc71;">${data.real_balance.toFixed(2)}</span></div>
                 <div class="user-info-row"><span>Статус:</span><span style="color:${data.is_banned ? '#e74c3c':'#2ecc71'}">${data.is_banned ? 'ЗАБАНЕН':'АКТИВЕН'}</span></div>
