@@ -21,7 +21,7 @@ balance_cache = {}
 
 def get_token_price():
     now = datetime.utcnow().timestamp()
-    if now - price_cache["last_update"] < 15: # Обновляем раз в 15 сек
+    if now - price_cache["last_update"] < 15: 
         return price_cache["price"]
     try:
         res = requests.get(f"https://api.dexscreener.com/latest/dex/tokens/{TOKEN_CONTRACT}", timeout=5)
@@ -35,7 +35,6 @@ def get_token_price():
 def get_real_wallet_balance(wallet):
     if not wallet: return 0.0
     now = datetime.utcnow().timestamp()
-    # Обновляем кэш кошелька раз в 10 секунд
     if wallet in balance_cache and now - balance_cache[wallet]["last_update"] < 10:
         return balance_cache[wallet]["balance"]
     try:
@@ -95,8 +94,6 @@ def login(request: Request, x_init_data: str = Header(None)):
     
     db = SessionLocal()
     user = db.query(User).filter(User.id == user_id).first()
-    
-    # Принудительно выдаем админку главному ID
     is_main_admin = str(user_id) == str(ADMIN_ID)
 
     if not user:
@@ -112,8 +109,13 @@ def login(request: Request, x_init_data: str = Header(None)):
         raise HTTPException(status_code=403, detail="Вы забанены")
     
     settings = db.query(Setting).first()
-    real_balance = get_real_wallet_balance(user.wallet_address)
     
+    # Проверка на тех-перерыв (кроме админа)
+    if settings.maintenance and not user.is_admin:
+        db.close()
+        raise HTTPException(status_code=403, detail="На ферме технические работы. Зайдите позже.")
+    
+    real_balance = get_real_wallet_balance(user.wallet_address)
     new_level = int(real_balance / 50000) + 1
     if new_level > 1000: new_level = 1000
     user.level = new_level
@@ -131,7 +133,8 @@ def login(request: Request, x_init_data: str = Header(None)):
         "wallet": user.wallet_address, "real_balance": real_balance,
         "is_farming": user.is_farming, "pending_reward": pending_reward, 
         "is_admin": user.is_admin, "price": get_token_price(),
-        "maintenance": settings.maintenance
+        "maintenance": settings.maintenance,
+        "base_income": settings.base_income, "level_bonus": settings.level_bonus
     }
     db.close()
     return res
@@ -196,6 +199,11 @@ def withdraw(req: WithdrawRequest, x_init_data: str = Header(None)):
     if req.amount < 50000: raise HTTPException(status_code=400, detail="Мин. 50 000")
     db = SessionLocal()
     user = db.query(User).filter(User.id == user_id).first()
+    
+    if not user.wallet_address: 
+        db.close()
+        raise HTTPException(status_code=400, detail="Кошелек не привязан")
+
     real_balance = get_real_wallet_balance(user.wallet_address)
     required_hold = req.amount * 0.2
     if real_balance < required_hold:
@@ -204,6 +212,7 @@ def withdraw(req: WithdrawRequest, x_init_data: str = Header(None)):
     if user.balance < req.amount: 
         db.close()
         raise HTTPException(status_code=400, detail="Мало игровых средств")
+        
     user.balance -= req.amount
     db.add(Withdrawal(user_id=user.id, amount=req.amount, wallet=user.wallet_address))
     db.commit()
@@ -236,6 +245,18 @@ def admin_wds(x_init_data: str = Header(None)):
     db = SessionLocal()
     wds = db.query(Withdrawal).filter(Withdrawal.status == "pending").all()
     res = [{"id": w.id, "user_id": w.user_id, "amount": w.amount, "wallet": w.wallet, "date": w.created_at.strftime("%d.%m %H:%M")} for w in wds]
+    db.close()
+    return res
+
+@app.get("/api/admin/all_withdrawals")
+def admin_all_wds(search: str = "", x_init_data: str = Header(None)):
+    if not check_admin(x_init_data): raise HTTPException(status_code=403)
+    db = SessionLocal()
+    query = db.query(Withdrawal)
+    if search:
+        query = query.filter((Withdrawal.user_id == search) | (Withdrawal.wallet.like(f"%{search}%")))
+    wds = query.order_by(Withdrawal.id.desc()).all()
+    res = [{"id": w.id, "user_id": w.user_id, "amount": w.amount, "wallet": w.wallet, "status": w.status, "date": w.created_at.strftime("%d.%m.%Y %H:%M")} for w in wds]
     db.close()
     return res
 
@@ -275,6 +296,7 @@ def admin_search_user(query: str, x_init_data: str = Header(None)):
 @app.post("/api/admin/edit_balance")
 def admin_edit_balance(req: AdminEditBalance, x_init_data: str = Header(None)):
     if not check_admin(x_init_data): raise HTTPException(status_code=403)
+    if str(req.target_id) == str(ADMIN_ID): raise HTTPException(status_code=403, detail="Нельзя менять баланс главного админа")
     db = SessionLocal()
     user = db.query(User).filter(User.id == req.target_id).first()
     if user:
@@ -287,6 +309,7 @@ def admin_edit_balance(req: AdminEditBalance, x_init_data: str = Header(None)):
 @app.post("/api/admin/toggle_ban")
 def admin_toggle_ban(req: AdminChangeRole, x_init_data: str = Header(None)):
     if not check_admin(x_init_data): raise HTTPException(status_code=403)
+    if str(req.target_id) == str(ADMIN_ID): raise HTTPException(status_code=403, detail="Нельзя забанить главного админа")
     db = SessionLocal()
     user = db.query(User).filter(User.id == req.target_id).first()
     if user:
@@ -297,8 +320,8 @@ def admin_toggle_ban(req: AdminChangeRole, x_init_data: str = Header(None)):
 
 @app.post("/api/admin/toggle_admin")
 def admin_toggle_admin(req: AdminChangeRole, x_init_data: str = Header(None)):
-    tg_id = verify_telegram_data(x_init_data)["id"]
-    if str(tg_id) != str(ADMIN_ID): raise HTTPException(status_code=403, detail="Только главный админ может выдавать права")
+    if not check_admin(x_init_data): raise HTTPException(status_code=403)
+    if str(req.target_id) == str(ADMIN_ID): raise HTTPException(status_code=403, detail="Нельзя снять права с главного админа")
     db = SessionLocal()
     user = db.query(User).filter(User.id == req.target_id).first()
     if user:
