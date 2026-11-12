@@ -235,6 +235,11 @@
         
         tonConnectUI.onStatusChange(wallet => {
             if (wallet) {
+                // ЗАЩИТА ОТ ДУРАКА: Нельзя привязать контракт токена
+                if (wallet.account.address === TOKEN_CONTRACT) {
+                    tg.showAlert("Ошибка: Вы привязали контракт токена вместо своего кошелька!");
+                    return;
+                }
                 fetch(API_URL + '/api/set_wallet', { method: 'POST', headers: HEADERS, body: JSON.stringify({ wallet: wallet.account.address }) }).then(() => loadData());
             } else {
                 fetch(API_URL + '/api/unlink_wallet', { method: 'POST', headers: HEADERS }).then(() => loadData());
@@ -259,7 +264,6 @@
             document.getElementById('real-balance').innerText = `Холд на кошельке: ${userData.real_balance.toFixed(0)} NEXA`;
             document.getElementById('token-price').innerText = `$${userData.price.toFixed(6)}`;
             
-            // Берем доход и бонус напрямую из настроек сервера
             let rate = userData.base_income * (1 + (userData.level - 1) * userData.level_bonus);
             document.getElementById('rate-hour').innerHTML = `${(rate * 3600).toFixed(2)} <span>NEXA</span>`;
             document.getElementById('rate-day').innerHTML = `${(rate * 86400).toFixed(2)} <span>NEXA</span>`;
@@ -315,7 +319,6 @@
             let amt = parseFloat(document.getElementById('w-amount').value);
             if(isNaN(amt) || amt < 50000) return tg.showAlert("Минимум 50 000 NEXA");
             try {
-                // Убрали wallet из тела запроса, так как сервер берет его из профиля
                 let res = await fetch(API_URL + '/api/withdraw', { method: 'POST', headers: HEADERS, body: JSON.stringify({ amount: amt }) });
                 let data = await res.json();
                 if (res.ok) { tg.showAlert("Заявка создана!"); loadData(); loadHistory(); }
@@ -348,7 +351,7 @@
                 html += `<div class="user-card">
                     <div class="user-info-row"><span>ID юзера:</span><span>${w.user_id}</span></div>
                     <div class="user-info-row"><span>Сумма:</span><span>${w.amount} NEXA</span></div>
-                    <div class="user-info-row"><span>Кошелек:</span><span>${w.wallet}</span></div>
+                    <div class="user-info-row"><span style="color:#D4AF37;">Кошелек:</span><span style="color:#D4AF37; font-size:11px;">${w.wallet}</span></div>
                     <div style="margin-top: 10px; display:flex; gap: 10px;">
                         <button class="btn-gold" onclick="adminAction(${w.id}, 'approve')">✅ Выплатить</button>
                         <button class="btn-red" onclick="adminAction(${w.id}, 'reject')">❌ Отклонить</button>
@@ -412,9 +415,18 @@
                     <button class="btn-red" onclick="toggleBan(${data.id})">${data.is_banned ? 'Разбанить' : 'Забанить'}</button>
                     <button class="btn-blue" onclick="toggleAdmin(${data.id}, ${!data.is_admin})">${data.is_admin ? 'Снять админку' : 'Выдать админку'}</button>
                 </div>
+                <div style="display:flex; gap:5px; margin-top: 10px;">
+                    <button class="btn-red" style="background:#e67e22; box-shadow:none;" onclick="resetWallet(${data.id})">Сбросить кошелек</button>
+                </div>
                 <div style="margin-top: 15px; font-size: 11px; color:#aaa;">История транзакций:</div>${txsHtml}
             </div>`;
             document.getElementById('user-result').innerHTML = html;
+        }
+
+        async function resetWallet(id) {
+            if(!confirm('Вы уверены, что хотите отвязать кошелек у этого юзера?')) return;
+            await fetch(API_URL + '/api/admin/reset_wallet', { method: 'POST', headers: HEADERS, body: JSON.stringify({ target_id: id }) });
+            searchUser();
         }
 
         async function editBalance(id, isAdd) {
@@ -464,7 +476,7 @@
             let lb = parseFloat(document.getElementById('s-level-bonus').value);
             await fetch(API_URL + '/api/admin/settings', { method: 'POST', headers: HEADERS, body: JSON.stringify({ maintenance: m, base_income: bi, level_bonus: lb }) });
             tg.showAlert("Настройки сохранены!");
-            loadData(); // Обновляем данные, чтобы доход сразу пересчитался
+            loadData();
         }
 
         setInterval(() => {
