@@ -147,7 +147,6 @@ def login(request: Request, x_init_data: str = Header(None)):
         if start_param and start_param.isdigit():
             ref_id = int(start_param)
             if ref_id == user_id: ref_id = None
-        # При создании ставим дату
         user = User(id=user_id, username=username, ip_address=ip, is_admin=is_main_admin, referrer_id=ref_id, created_at=datetime.utcnow())
         db.add(user)
     else:
@@ -384,7 +383,6 @@ def check_admin(x_init_data: str):
     db.close()
     return is_adm
 
-# ЭНДПОИНТ СТАТИСТИКИ
 @app.get("/api/admin/stats")
 def admin_stats(x_init_data: str = Header(None)):
     if not check_admin(x_init_data): raise HTTPException(status_code=403)
@@ -393,12 +391,9 @@ def admin_stats(x_init_data: str = Header(None)):
     total_users = db.query(User).count()
     farming_users = db.query(User).filter(User.is_farming == True).count()
     
-    # Новые сегодня (с 00:00)
     now = datetime.utcnow()
     start_of_today = datetime(now.year, now.month, now.day)
     new_users_today = db.query(User).filter(User.created_at >= start_of_today).count()
-    
-    # Онлайн за последние 5 минут
     online_users = db.query(User).filter(User.last_heartbeat >= now - timedelta(minutes=5)).count()
     
     db.close()
@@ -418,7 +413,6 @@ def admin_wds(x_init_data: str = Header(None)):
     db.close()
     return res
 
-# ... ОСТАЛЬНЫЕ ЭНДПОИНТЫ БЕЗ ИЗМЕНЕНИЙ (all_withdrawals, referrals, action, search_user, edit_balance, toggle_ban, toggle_admin, reset_wallet, settings, tasks/add, tasks/delete) ...
 @app.get("/api/admin/all_withdrawals")
 def admin_all_wds(search: str = "", x_init_data: str = Header(None)):
     if not check_admin(x_init_data): raise HTTPException(status_code=403)
