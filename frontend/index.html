@@ -91,6 +91,15 @@
         .stat-w-box { flex: 1; min-width: 45%; background: rgba(212, 175, 55, 0.1); border: 1px solid #D4AF37; padding: 10px; border-radius: 10px; text-align: center; backdrop-filter: blur(5px);}
         .stat-w-num { font-size: 20px; font-weight: 900; color: #D4AF37; }
         .stat-w-label { font-size: 10px; color: #ccc; }
+        
+        /* СТИЛИ ДЛЯ СПИСКА ВСЕХ ЮЗЕРОВ */
+        .filter-tabs { display: flex; gap: 5px; margin-bottom: 15px; }
+        .filter-tab { flex: 1; padding: 8px; text-align: center; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; font-size: 12px; cursor: pointer; }
+        .filter-tab.active { background: rgba(212, 175, 55, 0.2); border-color: #D4AF37; color: #D4AF37; font-weight: bold; }
+        .user-list-item { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; margin-bottom: 5px; display: flex; justify-content: space-between; font-size: 11px; }
+        .user-list-item span { color: #aaa; }
+        .user-list-item b { color: #fff; }
+        .user-list-item .online-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #2ecc71; margin-right: 5px; }
     </style>
 </head>
 <body>
@@ -192,7 +201,6 @@
     <div id="screen-admin" class="screen">
         <h2 style="color: #D4AF37; margin-bottom: 10px; text-shadow: 0 2px 4px #000;" data-lang="admin_title">Админ-панель</h2>
         
-        <!-- ВИДЖЕТ СТАТИСТИКИ -->
         <div class="stats-widget" id="admin-stats-widget">
             <div class="stat-w-box"><div class="stat-w-num" id="st-total">0</div><div class="stat-w-label">Всего</div></div>
             <div class="stat-w-box"><div class="stat-w-num" id="st-online" style="color:#3498db;">0</div><div class="stat-w-label">Онлайн</div></div>
@@ -208,14 +216,33 @@
             <div class="admin-tab" onclick="switchAdminTab('history', this)" data-lang="tab_hist">История</div>
             <div class="admin-tab" onclick="switchAdminTab('settings', this)" data-lang="tab_bot">Бот</div>
         </div>
+        
         <div id="admin-withdrawals" class="admin-section active"><div id="admin-list"></div></div>
+        
         <div id="admin-users" class="admin-section">
-            <div class="input-group" style="padding: 10px;">
-                <input type="text" id="search-query" placeholder="Введите TG ID или адрес кошелька...">
+            <!-- ПОИСК -->
+            <div class="input-group" style="padding: 10px; margin-bottom: 10px;">
+                <input type="text" id="search-query" placeholder="Поиск по TG ID или Кошельку...">
                 <button class="btn-blue" onclick="searchUser()" data-lang="search_btn">Найти</button>
             </div>
             <div id="user-result"></div>
+
+            <!-- СПИСОК ВСЕХ ЮЗЕРОВ -->
+            <div class="filter-tabs">
+                <div class="filter-tab active" onclick="setUserFilter('all', this)">Все</div>
+                <div class="filter-tab" onclick="setUserFilter('online', this)">Онлайн</div>
+                <div class="filter-tab" onclick="setUserFilter('farming', this)">Фармят</div>
+            </div>
+            
+            <div class="level-nav" style="margin-top: 5px;">
+                <button class="level-arrow" onclick="changeUsersPage(-1)">❮</button>
+                <div style="font-weight:bold; color:#D4AF37;" id="users-page-indicator">1 / 1</div>
+                <button class="level-arrow" onclick="changeUsersPage(1)">❯</button>
+            </div>
+
+            <div id="all-users-list" style="max-height: 400px; overflow-y: auto;"></div>
         </div>
+
         <div id="admin-refs" class="admin-section">
             <div class="input-group" style="padding: 10px;">
                 <input type="text" id="ref-search" placeholder="TG ID">
@@ -227,17 +254,14 @@
             <div class="input-group" style="padding: 10px;">
                 <h3 style="font-size: 14px; margin-bottom: 10px; color: #D4AF37;">Добавить задание</h3>
                 <input type="text" id="t-title" placeholder="Название (например: Отыграть 10 мин)">
-                
                 <select id="t-type" onchange="changeTaskType()">
                     <option value="subscribe">Подписка на канал</option>
                     <option value="time">Отыграть время (в минутах)</option>
                     <option value="coins">Накопить монеты</option>
                     <option value="level">Достичь уровня</option>
                 </select>
-
                 <input type="text" id="t-url" placeholder="Ссылка на канал (https://t.me/...)" style="display:block;">
                 <input type="number" id="t-target" placeholder="Кол-во минут" style="display:none;">
-                
                 <input type="number" id="t-reward" placeholder="Награда (в NEXA)">
                 <button class="btn-gold" onclick="addTask()">Добавить</button>
             </div>
@@ -284,8 +308,14 @@
         
         let userData = { balance: 0, level: 1, real_balance: 0, is_farming: false, pending_reward: 0, price: 0, base_income: 0.000057, level_bonus: 0.05, play_time: 0 };
         let currentLang = localStorage.getItem('nexa_lang') || 'ru';
+        
         let currentLevelPage = 1;
         const LEVELS_PER_PAGE = 50, MAX_LEVEL = 1000, TOTAL_PAGES = Math.ceil(MAX_LEVEL / LEVELS_PER_PAGE);
+
+        // Переменные для списка юзеров
+        let usersPage = 1;
+        let usersTotalPages = 1;
+        let usersFilter = "all";
 
         const translations = {
             ru: { banned_title: "Вы заблокированы", banned_desc: "Ваш аккаунт был забанен администрацией.", maint_title: "Технические работы", maint_desc: "Мы обновляем ферму.", balance: "Игровой Баланс", level_hold: "Уровень (от холда)", per_hour: "⚡ В час", per_day: "📅 В день", start_mining: "Начать майнинг", collect: "Собрать", hold_text: "Холд на кошельке:", level_text: "Уровень", next_level: "До след.:", buy_title: "Купить NEXA", price: "Текущий курс", buy_desc: "Купить токены за TON", buy_btn: "🚀 Купить на STON.fi", levels_title: "Уровни", levels_desc: "Уровень зависит от холда NEXA на кошельке.", withdraw_title: "Вывод средств", withdraw_desc: "Для проверки холда привяжите кошелек TON.", withdraw_addr: "Куда вывести NEXA? (Введите адрес)", withdraw_amt: "Сумма вывода (Мин. 50,000 NEXA)", withdraw_hold: "* Для вывода нужно иметь 20% от суммы в токенах на кошельке.", withdraw_btn: "Запросить вывод", history_title: "История выводов", friends_title: "Друзья", friends_desc: "Пригласи друга и получай 10% от его майнинга!", share_btn: "Поделиться", admin_title: "Админ-панель", tab_wds: "Заявки", tab_users: "Юзеры", tab_refs: "Рефералы", tab_tasks: "Задания", tab_hist: "История", tab_bot: "Бот", search_btn: "Найти", maintenance: "Технические работы", base_income: "Базовая ставка (в сек)", level_bonus: "Бонус за уровень (0.05 = +5%)", save_btn: "Сохранить настройки", nav_mine: "Майнинг", nav_buy: "Обмен", nav_tasks: "Задания", nav_lvl: "Уровни", nav_wd: "Вывод", nav_fr: "Друзья", nav_adm: "Админ", hold_req: "Холд:", inc_day: "NEXA/день:", mult: "Множ:", no_txs: "Нет транзакций", reset_wallet: "Сбросить кошелек", ban: "Забанить", unban: "Разбанить", make_admin: "Выдать админку", remove_admin: "Снять админку", reset_wallet_confirm: "Отвязать кошелек?", tasks_title: "Задания", tasks_go: "Перейти", tasks_claim: "Забрать", tasks_done: "Выполнено", tasks_empty: "Нет доступных заданий", admin_tasks_add: "Добавить задание", admin_tasks_active: "Активные задания", admin_tasks_delete: "Удалить" },
@@ -300,7 +330,7 @@
         for(let i=0; i<60; i++) { let s = document.createElement('div'); s.className = 'snowflake'; let size = Math.random()*4+1; s.style.width = s.style.height = size+'px'; s.style.left = Math.random()*100+'vw'; s.style.animationDuration = Math.random()*4+3+'s'; s.style.animationDelay = Math.random()*5+'s'; document.getElementById('snow-container').appendChild(s); }
 
         function switchTab(tabId, el) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); document.getElementById('screen-' + tabId).classList.add('active'); el.classList.add('active'); if(tabId === 'wallet') loadHistory(); if(tabId === 'levels') renderLevels(); if(tabId === 'tasks') loadTasks(); if(tabId === 'admin') loadAdminData(); }
-        function switchAdminTab(tabId, el) { document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active')); document.querySelectorAll('.admin-tab').forEach(n => n.classList.remove('active')); document.getElementById('admin-' + tabId).classList.add('active'); el.classList.add('active'); if(tabId === 'settings') loadSettings(); if(tabId === 'history') loadAllHistory(); if(tabId === 'refs') loadReferrals(); if(tabId === 'tasks_admin') loadAdminTasks(); }
+        function switchAdminTab(tabId, el) { document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active')); document.querySelectorAll('.admin-tab').forEach(n => n.classList.remove('active')); document.getElementById('admin-' + tabId).classList.add('active'); el.classList.add('active'); if(tabId === 'settings') loadSettings(); if(tabId === 'history') loadAllHistory(); if(tabId === 'refs') loadReferrals(); if(tabId === 'tasks_admin') loadAdminTasks(); if(tabId === 'users') loadUsersList(); }
         function copyText(text) { navigator.clipboard.writeText(text).then(() => tg.showAlert(currentLang === 'ru' ? "Скопировано!" : "Copied!")).catch(() => tg.showAlert("Error")); }
 
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({ manifestUrl: window.location.origin + '/tonconnect-manifest.json', buttonRootId: 'ton-connect' });
@@ -426,9 +456,51 @@
             document.getElementById('st-new').innerText = data.new_users_today;
         }
 
+        // СПИСОК ЮЗЕРОВ
+        function setUserFilter(filter, el) {
+            usersFilter = filter;
+            usersPage = 1;
+            document.querySelectorAll('#admin-users .filter-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            loadUsersList();
+        }
+
+        function changeUsersPage(dir) {
+            usersPage += dir;
+            if(usersPage < 1) usersPage = 1;
+            if(usersPage > usersTotalPages) usersPage = usersTotalPages;
+            loadUsersList();
+        }
+
+        async function loadUsersList() {
+            let res = await fetch(API_URL + `/api/admin/users_list?page=${usersPage}&filter_by=${usersFilter}`, { headers: HEADERS });
+            let data = await res.json();
+            
+            usersTotalPages = data.total_pages;
+            document.getElementById('users-page-indicator').innerText = `${data.current_page} / ${data.total_pages} (${data.total_users})`;
+            
+            let html = '';
+            data.users.forEach(u => {
+                let status = u.is_banned ? '<span style="color:#e74c3c">BAN</span>' : (u.is_farming ? '<span class="online-dot"></span>Фармит' : 'IDLE');
+                html += `<div class="user-list-item">
+                    <div>
+                        <b onclick="copyText('${u.id}')" style="cursor:pointer; text-decoration:underline;">${u.id}</b> 
+                        <span>(${u.username})</span><br>
+                        <span>Lvl: ${u.level} | Bal: ${u.balance.toFixed(0)}</span>
+                    </div>
+                    <div style="text-align:right;">
+                        ${status}<br>
+                        <span style="font-size:9px;">${Math.floor(u.play_time/60)} мин</span>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('all-users-list').innerHTML = html || '<div style="color:#666; text-align:center;">Нет юзеров</div>';
+        }
+
         async function loadAdminData() { 
             loadAdminStats();
             loadWithdrawals(); 
+            loadUsersList();
         }
 
         async function loadWithdrawals() { let res = await fetch(API_URL + '/api/admin/withdrawals', { headers: HEADERS }); let data = await res.json(); let html = ''; let txPlaceholder = currentLang === 'ru' ? 'Ссылка на транзакцию...' : 'Transaction link...'; data.forEach(w => { html += `<div class="user-card"><div class="user-info-row" onclick="copyText('${w.user_id}')" style="cursor:pointer;" title="Копировать ID"><span>ID (нажми):</span><span style="text-decoration:underline;">${w.user_id}</span></div><div class="user-info-row"><span>Sum:</span><span>${w.amount} NEXA</span></div><div class="user-info-row" onclick="copyText('${w.wallet}')" style="cursor:pointer;" title="Копировать кошелек"><span style="color:#D4AF37;">Dest Wallet (нажми):</span><span style="color:#D4AF37; font-size:11px; text-decoration:underline;">${w.wallet}</span></div><input type="text" id="tx-${w.id}" placeholder="${txPlaceholder}" style="width:100%; background:#111; border:1px solid #333; color:white; padding:8px; border-radius:5px; margin-top:10px; font-size:12px;"><div style="margin-top: 10px; display:flex; gap: 10px;"><button class="btn-gold" onclick="adminAction(${w.id}, 'approve')">✅ Pay</button><button class="btn-red" onclick="adminAction(${w.id}, 'reject')">❌ Reject</button></div></div>`; }); document.getElementById('admin-list').innerHTML = html || '<div style="color:#666; text-align:center;">Empty</div>'; }
@@ -443,8 +515,8 @@
 
         async function resetWallet(id) { if(!confirm(t('reset_wallet_confirm'))) return; await fetch(API_URL + '/api/admin/reset_wallet', { method: 'POST', headers: HEADERS, body: JSON.stringify({ target_id: id }) }); searchUser(); }
         async function editBalance(id, isAdd) { let amt = parseFloat(document.getElementById('adm-amount').value); if(!amt) return; await fetch(API_URL + '/api/admin/edit_balance', { method: 'POST', headers: HEADERS, body: JSON.stringify({ target_id: id, amount: amt, is_add: isAdd }) }); searchUser(); }
-        async function toggleBan(id) { await fetch(API_URL + '/api/admin/toggle_ban', { method: 'POST', headers: HEADERS, body: JSON.stringify({ target_id: id, is_admin: false }) }); searchUser(); }
-        async function toggleAdmin(id, isAdm) { try { let res = await fetch(API_URL + '/api/admin/toggle_admin', { method: 'POST', headers: HEADERS, body: JSON.stringify({ target_id: id, is_admin: isAdm }) }); if(!res.ok) throw new Error("No rights"); searchUser(); } catch(e) { tg.showAlert("Only main admin can do this"); } }
+        async function toggleBan(id) { await fetch(API_URL + '/api/admin/toggle_ban', { method: 'POST', headers: HEADERS, body: JSON.stringify({ target_id: id, is_admin: false }) }); searchUser(); loadUsersList(); }
+        async function toggleAdmin(id, isAdm) { try { let res = await fetch(API_URL + '/api/admin/toggle_admin', { method: 'POST', headers: HEADERS, body: JSON.stringify({ target_id: id, is_admin: isAdm }) }); if(!res.ok) throw new Error("No rights"); searchUser(); loadUsersList(); } catch(e) { tg.showAlert("Only main admin can do this"); } }
 
         async function loadSettings() { let res = await fetch(API_URL + '/api/admin/settings', { headers: HEADERS }); let data = await res.json(); document.getElementById('s-maintenance').checked = data.maintenance; document.getElementById('s-base-income').value = data.base_income; document.getElementById('s-level-bonus').value = data.level_bonus; }
         async function saveSettings() { let m = document.getElementById('s-maintenance').checked; let bi = parseFloat(document.getElementById('s-base-income').value); let lb = parseFloat(document.getElementById('s-level-bonus').value); await fetch(API_URL + '/api/admin/settings', { method: 'POST', headers: HEADERS, body: JSON.stringify({ maintenance: m, base_income: bi, level_bonus: lb }) }); tg.showAlert("Saved!"); loadData(); }
