@@ -10,20 +10,16 @@
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
         body { background-color: #050505; color: white; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
-        
         .bg-village { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('bg.jpg'); background-size: cover; background-position: center; z-index: -3; }
         .bg-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.55); z-index: -2; }
         .lamp-flicker { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; background: radial-gradient(circle at 50% 50%, rgba(255, 180, 50, 0.15) 0%, transparent 80%); animation: flicker 12s infinite; }
         @keyframes flicker { 0%, 10%, 25%, 45%, 60%, 100% { opacity: 1; } 12%, 48%, 62% { opacity: 0.6; } 13%, 49%, 63% { opacity: 0.2; } }
-
         .snow-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: hidden; }
         .snowflake { position: absolute; top: -10px; background: white; border-radius: 50%; opacity: 0.9; filter: blur(1px); animation: fall linear infinite; box-shadow: 0 0 5px rgba(255,255,255,0.8); }
         @keyframes fall { to { transform: translateY(105vh); } }
-        
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,5,0.95); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
         .overlay h1 { color: #e74c3c; font-size: 28px; margin-bottom: 15px; text-transform: uppercase; }
         .overlay p { color: #aaa; font-size: 14px; }
-        
         .screen { display: none; flex: 1; flex-direction: column; padding: 20px; overflow-y: auto; padding-bottom: 100px; z-index: 10; }
         .screen.active { display: flex; }
         .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
@@ -31,33 +27,27 @@
         .avatar { width: 32px; height: 32px; border-radius: 50%; border: 1px solid #D4AF37; background: #111; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #D4AF37; }
         .app-title { font-size: 18px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; background: linear-gradient(180deg, #FFFFFF 0%, #D4AF37 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
         .lang-btn { background: rgba(212, 175, 55, 0.2); border: 1px solid #D4AF37; color: #D4AF37; padding: 5px 10px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 12px; backdrop-filter: blur(5px);}
-        
         .mining-container { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-top: -20px; }
         .coin-wrapper { position: relative; width: 250px; height: 250px; display: flex; justify-content: center; align-items: center; margin-bottom: 30px; }
         .coin-glow { position: absolute; width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle, rgba(212, 175, 55, 0.4) 0%, transparent 60%); animation: glowPulse 3s ease-in-out infinite alternate; }
         @keyframes glowPulse { from { transform: scale(0.9); opacity: 0.5; } to { transform: scale(1.1); opacity: 1; } }
         .nexa-coin { width: 220px; height: 220px; border-radius: 50%; object-fit: cover; opacity: 0.95; filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.8)); animation: floatCoin 4s ease-in-out infinite; z-index: 2; }
         @keyframes floatCoin { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-15px) rotate(2deg); } }
-        
         .collect-btn { background: linear-gradient(135deg, rgba(212, 175, 55, 0.3) 0%, rgba(212, 175, 55, 0.7) 100%); backdrop-filter: blur(10px); color: #fff; font-weight: 800; font-size: 18px; padding: 18px 40px; border-radius: 30px; border: 1px solid #D4AF37; width: 100%; max-width: 320px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: 0.2s; text-shadow: 0 2px 4px rgba(0,0,0,0.5);}
         .collect-btn:active { transform: scale(0.95); }
         .collect-btn.farming { background: rgba(20, 20, 20, 0.8); border: 1px solid #555; color: #aaa; box-shadow: none; }
-        
         .balance-title { font-size: 12px; color: #ccc; text-align: center; margin-top: 10px; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 2px 4px #000;}
         .balance-value { font-size: 46px; font-weight: 900; text-align: center; color: #D4AF37; text-shadow: 0 0 20px rgba(212,175,55,0.5), 0 2px 4px #000; }
         .real-balance { font-size: 12px; text-align: center; color: #2ecc71; margin-top: 5px; font-weight: 600; text-shadow: 0 1px 2px #000;}
-        
         .level-box { margin-top: 25px; width: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); padding: 15px; border-radius: 20px; border: 1px solid rgba(212,175,55,0.3); }
         .level-top { display: flex; justify-content: space-between; font-size: 12px; color: #aaa; margin-bottom: 8px; font-weight: 600;}
         .progress-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
         .progress-fill { height: 100%; background: linear-gradient(90deg, #D4AF37, #FFDF00); width: 0%; transition: 0.3s; border-radius: 3px; box-shadow: 0 0 10px #D4AF37;}
-        
         .stats-grid { display: flex; gap: 10px; margin-top: 15px; }
         .stat-card { flex: 1; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 15px; text-align: center; backdrop-filter: blur(10px); }
         .stat-card-title { font-size: 11px; color: #999; margin-bottom: 5px; text-transform: uppercase;}
         .stat-card-val { font-size: 18px; font-weight: 800; color: #fff; text-shadow: 0 2px 4px #000;}
         .stat-card-val span { font-size: 12px; color: #D4AF37; }
-        
         .level-nav { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 15px; margin-bottom: 15px; }
         .level-arrow { background: rgba(212, 175, 55, 0.3); border: 1px solid #D4AF37; color: #D4AF37; font-size: 20px; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; backdrop-filter: blur(5px);}
         .level-arrow:active { transform: scale(0.9); background: #D4AF37; color: #000; }
@@ -66,35 +56,29 @@
         .lvl-col { display: flex; flex-direction: column; gap: 4px;}
         .lvl-title { font-weight: 800; color: #D4AF37; }
         .lvl-sub { font-size: 11px; color: #ccc; }
-        
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: rgba(10, 10, 10, 0.95); border-top: 1px solid rgba(212,175,55,0.3); display: flex; justify-content: space-around; align-items: center; z-index: 100; backdrop-filter: blur(20px); padding: 0 5px;}
         .nav-item { display: flex; flex-direction: column; align-items: center; color: #666; font-size: 9px; gap: 4px; cursor: pointer; transition: 0.2s; width: 14%;}
         .nav-item.active { color: #D4AF37; }
         .nav-icon { font-size: 18px; }
-        
         .input-group { display: flex; flex-direction: column; gap: 8px; background: rgba(0,0,0,0.6); padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 15px; backdrop-filter: blur(10px);}
         .input-group input { background: rgba(255,255,255,0.1); border: 1px solid rgba(212, 175, 55, 0.5); padding: 15px; border-radius: 12px; color: white; font-size: 16px; outline: none; }
         .btn-gold { background: linear-gradient(135deg, #D4AF37, #FFDF00); color: #000; padding: 12px; border-radius: 12px; border: none; font-weight: 800; font-size: 14px; cursor: pointer; width: 100%; box-shadow: 0 5px 15px rgba(0,0,0,0.5); margin-top: 5px;}
         .btn-blue { background: linear-gradient(135deg, #0088cc, #0055ff); color: #fff; padding: 12px; border-radius: 12px; border: none; font-weight: 800; font-size: 14px; cursor: pointer; width: 100%; box-shadow: 0 5px 15px rgba(0,0,0,0.5); margin-top: 5px;}
         .btn-red { background: linear-gradient(135deg, #e74c3c, #c0392b); color: #fff; padding: 12px; border-radius: 12px; border: none; font-weight: 800; font-size: 14px; cursor: pointer; width: 100%; box-shadow: 0 5px 15px rgba(0,0,0,0.5); margin-top: 5px;}
-        
         .history-item { background: rgba(0,0,0,0.6); padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px);}
         .status-pending { color: #f1c40f; }
         .status-approved { color: #2ecc71; }
         .status-rejected { color: #e74c3c; }
-        
         .admin-tabs { display: flex; gap: 5px; margin-bottom: 15px; flex-wrap: wrap; }
         .admin-tab { flex: 1; text-align: center; padding: 10px 5px; background: rgba(0,0,0,0.6); border-radius: 10px; font-size: 11px; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px);}
         .admin-tab.active { background: #D4AF37; color: #000; font-weight: bold; border-color: #D4AF37;}
         .admin-section { display: none; }
         .admin-section.active { display: block; }
-        
         .user-card { background: rgba(0,0,0,0.6); border: 1px solid #D4AF37; border-radius: 15px; padding: 15px; margin-bottom: 15px; backdrop-filter: blur(5px);}
         .user-info-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; padding: 4px 0;}
         .user-info-row span:first-child { color: #aaa; }
         .user-info-row span:last-child { font-weight: bold; word-break: break-all; max-width: 60%; text-align: right;}
         .tx-item { font-size: 10px; color: #aaa; margin-top: 5px; border-top: 1px dashed #333; padding-top: 5px; }
-
         .task-card { background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 15px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; backdrop-filter: blur(5px); }
         .task-title { font-weight: 800; color: #D4AF37; font-size: 14px; }
         .task-reward { font-size: 12px; color: #2ecc71; font-weight: bold; }
@@ -228,9 +212,7 @@
             <div class="input-group" style="padding: 10px;">
                 <h3 style="font-size: 14px; margin-bottom: 10px; color: #D4AF37;">Добавить задание</h3>
                 <input type="text" id="t-title" placeholder="Название (Подписка на канал)">
-                <input type="text" id="t-url" placeholder="Ссылка (https://t.me/...)">
-                <!-- НОВОЕ ПОЛЕ ДЛЯ ID КАНАЛА -->
-                <input type="text" id="t-chat-id" placeholder="ID канала (@channel_name или -100...)">
+                <input type="text" id="t-url" placeholder="Ссылка на канал (https://t.me/...)">
                 <input type="number" id="t-reward" placeholder="Награда (в NEXA)">
                 <button class="btn-gold" onclick="addTask()">Добавить</button>
             </div>
@@ -271,485 +253,82 @@
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        
         const API_URL = "https://nexa-api-production-ef06fa31.up.railway.app"; 
         const HEADERS = { "X-Init-Data": tg.initData, "Content-Type": "application/json" };
         const TOKEN_CONTRACT = "EQCuxWmM9HG_T7i6B7PErsltrX8UohL-IUH7OSOWoXp_f8Tb";
         
         let userData = { balance: 0, level: 1, real_balance: 0, is_farming: false, pending_reward: 0, price: 0, base_income: 0.000057, level_bonus: 0.05 };
         let currentLang = localStorage.getItem('nexa_lang') || 'ru';
-        
         let currentLevelPage = 1;
-        const LEVELS_PER_PAGE = 50;
-        const MAX_LEVEL = 1000;
-        const TOTAL_PAGES = Math.ceil(MAX_LEVEL / LEVELS_PER_PAGE);
+        const LEVELS_PER_PAGE = 50, MAX_LEVEL = 1000, TOTAL_PAGES = Math.ceil(MAX_LEVEL / LEVELS_PER_PAGE);
 
         const translations = {
-            ru: {
-                banned_title: "Вы заблокированы", banned_desc: "Ваш аккаунт был забанен администрацией. Если вы считаете это ошибкой, свяжитесь с поддержкой.",
-                maint_title: "Технические работы", maint_desc: "Мы обновляем ферму. Пожалуйста, зайдите чуть позже.",
-                balance: "Игровой Баланс", level_hold: "Уровень (от холда)", per_hour: "⚡ В час", per_day: "📅 В день",
-                start_mining: "Начать майнинг", collect: "Собрать", hold_text: "Холд на кошельке:",
-                level_text: "Уровень", next_level: "До след.:",
-                buy_title: "Купить NEXA", price: "Текущий курс", buy_desc: "Купить токены за TON", buy_btn: "🚀 Купить на STON.fi",
-                levels_title: "Уровни", levels_desc: "Уровень зависит от холда NEXA на кошельке.",
-                withdraw_title: "Вывод средств", withdraw_desc: "Для проверки холда привяжите кошелек TON.",
-                withdraw_addr: "Куда вывести NEXA? (Введите адрес)", withdraw_amt: "Сумма вывода (Мин. 50,000 NEXA)",
-                withdraw_hold: "* Для вывода нужно иметь 20% от суммы в токенах на кошельке.", withdraw_btn: "Запросить вывод",
-                history_title: "История выводов", friends_title: "Друзья", friends_desc: "Пригласи друга и получай 10% от его майнинга!", share_btn: "Поделиться",
-                admin_title: "Админ-панель", tab_wds: "Заявки", tab_users: "Юзеры", tab_refs: "Рефералы", tab_tasks: "Задания", tab_hist: "История", tab_bot: "Бот",
-                search_btn: "Найти", maintenance: "Технические работы", base_income: "Базовая ставка (в сек)",
-                level_bonus: "Бонус за уровень (0.05 = +5%)", save_btn: "Сохранить настройки",
-                nav_mine: "Майнинг", nav_buy: "Обмен", nav_tasks: "Задания", nav_lvl: "Уровни", nav_wd: "Вывод", nav_fr: "Друзья", nav_adm: "Админ",
-                hold_req: "Холд:", inc_day: "NEXA/день:", mult: "Множ:",
-                no_txs: "Нет транзакций", reset_wallet: "Сбросить кошелек", ban: "Забанить", unban: "Разбанить",
-                make_admin: "Выдать админку", remove_admin: "Снять админку", reset_wallet_confirm: "Отвязать кошелек?",
-                tasks_title: "Задания", tasks_go: "Перейти", tasks_claim: "Забрать", tasks_done: "Выполнено", tasks_empty: "Нет доступных заданий",
-                admin_tasks_add: "Добавить задание", admin_tasks_active: "Активные задания", admin_tasks_delete: "Удалить"
-            },
-            en: {
-                banned_title: "You are banned", banned_desc: "Your account has been banned by the administration.",
-                maint_title: "Maintenance", maint_desc: "We are updating the farm. Please check back later.",
-                balance: "Game Balance", level_hold: "Level (from Hold)", per_hour: "⚡ Per hour", per_day: "📅 Per day",
-                start_mining: "Start Mining", collect: "Collect", hold_text: "Wallet Hold:",
-                level_text: "Level", next_level: "To next:",
-                buy_title: "Buy NEXA", price: "Current Price", buy_desc: "Buy tokens with TON", buy_btn: "🚀 Buy on STON.fi",
-                levels_title: "Levels", levels_desc: "Level depends on NEXA hold on your wallet.",
-                withdraw_title: "Withdraw", withdraw_desc: "Link TON wallet to verify hold.",
-                withdraw_addr: "Where to withdraw NEXA? (Enter address)", withdraw_amt: "Withdraw Amount (Min. 50,000 NEXA)",
-                withdraw_hold: "* You need 20% of the amount in tokens on your wallet to withdraw.", withdraw_btn: "Request Withdrawal",
-                history_title: "Withdrawal History", friends_title: "Friends", friends_desc: "Invite a friend and get 10% of their mining!", share_btn: "Share",
-                admin_title: "Admin Panel", tab_wds: "Requests", tab_users: "Users", tab_refs: "Referrals", tab_tasks: "Tasks", tab_hist: "History", tab_bot: "Bot",
-                search_btn: "Search", maintenance: "Maintenance Mode", base_income: "Base Rate (per sec)",
-                level_bonus: "Level Bonus (0.05 = +5%)", save_btn: "Save Settings",
-                nav_mine: "Mining", nav_buy: "Exchange", nav_tasks: "Tasks", nav_lvl: "Levels", nav_wd: "Withdraw", nav_fr: "Friends", nav_adm: "Admin",
-                hold_req: "Hold:", inc_day: "NEXA/day:", mult: "Mult:",
-                no_txs: "No txs", reset_wallet: "Reset Wallet", ban: "Ban", unban: "Unban",
-                make_admin: "Make Admin", remove_admin: "Remove Admin", reset_wallet_confirm: "Reset wallet?",
-                tasks_title: "Tasks", tasks_go: "Go", tasks_claim: "Claim", tasks_done: "Completed", tasks_empty: "No tasks available",
-                admin_tasks_add: "Add Task", admin_tasks_active: "Active Tasks", admin_tasks_delete: "Delete"
-            }
+            ru: { banned_title: "Вы заблокированы", banned_desc: "Ваш аккаунт был забанен администрацией.", maint_title: "Технические работы", maint_desc: "Мы обновляем ферму.", balance: "Игровой Баланс", level_hold: "Уровень (от холда)", per_hour: "⚡ В час", per_day: "📅 В день", start_mining: "Начать майнинг", collect: "Собрать", hold_text: "Холд на кошельке:", level_text: "Уровень", next_level: "До след.:", buy_title: "Купить NEXA", price: "Текущий курс", buy_desc: "Купить токены за TON", buy_btn: "🚀 Купить на STON.fi", levels_title: "Уровни", levels_desc: "Уровень зависит от холда NEXA на кошельке.", withdraw_title: "Вывод средств", withdraw_desc: "Для проверки холда привяжите кошелек TON.", withdraw_addr: "Куда вывести NEXA? (Введите адрес)", withdraw_amt: "Сумма вывода (Мин. 50,000 NEXA)", withdraw_hold: "* Для вывода нужно иметь 20% от суммы в токенах на кошельке.", withdraw_btn: "Запросить вывод", history_title: "История выводов", friends_title: "Друзья", friends_desc: "Пригласи друга и получай 10% от его майнинга!", share_btn: "Поделиться", admin_title: "Админ-панель", tab_wds: "Заявки", tab_users: "Юзеры", tab_refs: "Рефералы", tab_tasks: "Задания", tab_hist: "История", tab_bot: "Бот", search_btn: "Найти", maintenance: "Технические работы", base_income: "Базовая ставка (в сек)", level_bonus: "Бонус за уровень (0.05 = +5%)", save_btn: "Сохранить настройки", nav_mine: "Майнинг", nav_buy: "Обмен", nav_tasks: "Задания", nav_lvl: "Уровни", nav_wd: "Вывод", nav_fr: "Друзья", nav_adm: "Админ", hold_req: "Холд:", inc_day: "NEXA/день:", mult: "Множ:", no_txs: "Нет транзакций", reset_wallet: "Сбросить кошелек", ban: "Забанить", unban: "Разбанить", make_admin: "Выдать админку", remove_admin: "Снять админку", reset_wallet_confirm: "Отвязать кошелек?", tasks_title: "Задания", tasks_go: "Перейти", tasks_claim: "Забрать", tasks_done: "Выполнено", tasks_empty: "Нет доступных заданий", admin_tasks_add: "Добавить задание", admin_tasks_active: "Активные задания", admin_tasks_delete: "Удалить" },
+            en: { banned_title: "You are banned", banned_desc: "Your account has been banned by the administration.", maint_title: "Maintenance", maint_desc: "We are updating the farm.", balance: "Game Balance", level_hold: "Level (from Hold)", per_hour: "⚡ Per hour", per_day: "📅 Per day", start_mining: "Start Mining", collect: "Collect", hold_text: "Wallet Hold:", level_text: "Level", next_level: "To next:", buy_title: "Buy NEXA", price: "Current Price", buy_desc: "Buy tokens with TON", buy_btn: "🚀 Buy on STON.fi", levels_title: "Levels", levels_desc: "Level depends on NEXA hold on your wallet.", withdraw_title: "Withdraw", withdraw_desc: "Link TON wallet to verify hold.", withdraw_addr: "Where to withdraw NEXA? (Enter address)", withdraw_amt: "Withdraw Amount (Min. 50,000 NEXA)", withdraw_hold: "* You need 20% of the amount in tokens on your wallet to withdraw.", withdraw_btn: "Request Withdrawal", history_title: "Withdrawal History", friends_title: "Friends", friends_desc: "Invite a friend and get 10% of their mining!", share_btn: "Share", admin_title: "Admin Panel", tab_wds: "Requests", tab_users: "Users", tab_refs: "Referrals", tab_tasks: "Tasks", tab_hist: "History", tab_bot: "Bot", search_btn: "Search", maintenance: "Maintenance Mode", base_income: "Base Rate (per sec)", level_bonus: "Level Bonus (0.05 = +5%)", save_btn: "Save Settings", nav_mine: "Mining", nav_buy: "Exchange", nav_tasks: "Tasks", nav_lvl: "Levels", nav_wd: "Withdraw", nav_fr: "Friends", nav_adm: "Admin", hold_req: "Hold:", inc_day: "NEXA/day:", mult: "Mult:", no_txs: "No txs", reset_wallet: "Reset Wallet", ban: "Ban", unban: "Unban", make_admin: "Make Admin", remove_admin: "Remove Admin", reset_wallet_confirm: "Reset wallet?", tasks_title: "Tasks", tasks_go: "Go", tasks_claim: "Claim", tasks_done: "Completed", tasks_empty: "No tasks available", admin_tasks_add: "Add Task", admin_tasks_active: "Active Tasks", admin_tasks_delete: "Delete" }
         };
 
         const t = (key) => translations[currentLang][key] || key;
 
-        function toggleLang() {
-            currentLang = currentLang === 'ru' ? 'en' : 'ru';
-            localStorage.setItem('nexa_lang', currentLang);
-            translateUI(); updateUI(); renderLevels();
-            if(document.getElementById('screen-tasks').classList.contains('active')) loadTasks();
-            if(document.getElementById('screen-admin').classList.contains('active')) loadAdminData();
-        }
+        function toggleLang() { currentLang = currentLang === 'ru' ? 'en' : 'ru'; localStorage.setItem('nexa_lang', currentLang); translateUI(); updateUI(); renderLevels(); if(document.getElementById('screen-tasks').classList.contains('active')) loadTasks(); if(document.getElementById('screen-admin').classList.contains('active')) loadAdminData(); }
+        function translateUI() { document.getElementById('lang-btn').innerText = currentLang === 'ru' ? 'EN' : 'RU'; document.querySelectorAll('[data-lang]').forEach(el => { el.innerText = t(el.getAttribute('data-lang')); }); }
 
-        function translateUI() {
-            document.getElementById('lang-btn').innerText = currentLang === 'ru' ? 'EN' : 'RU';
-            document.querySelectorAll('[data-lang]').forEach(el => {
-                el.innerText = t(el.getAttribute('data-lang'));
-            });
-        }
+        for(let i=0; i<60; i++) { let s = document.createElement('div'); s.className = 'snowflake'; let size = Math.random()*4+1; s.style.width = s.style.height = size+'px'; s.style.left = Math.random()*100+'vw'; s.style.animationDuration = Math.random()*4+3+'s'; s.style.animationDelay = Math.random()*5+'s'; document.getElementById('snow-container').appendChild(s); }
 
-        for(let i=0; i<60; i++) {
-            let s = document.createElement('div'); s.className = 'snowflake';
-            let size = Math.random()*4+1;
-            s.style.width = s.style.height = size+'px'; 
-            s.style.left = Math.random()*100+'vw';
-            s.style.animationDuration = Math.random()*4+3+'s'; 
-            s.style.animationDelay = Math.random()*5+'s';
-            document.getElementById('snow-container').appendChild(s);
-        }
+        function switchTab(tabId, el) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); document.getElementById('screen-' + tabId).classList.add('active'); el.classList.add('active'); if(tabId === 'wallet') loadHistory(); if(tabId === 'levels') renderLevels(); if(tabId === 'tasks') loadTasks(); if(tabId === 'admin') loadAdminData(); }
+        function switchAdminTab(tabId, el) { document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active')); document.querySelectorAll('.admin-tab').forEach(n => n.classList.remove('active')); document.getElementById('admin-' + tabId).classList.add('active'); el.classList.add('active'); if(tabId === 'settings') loadSettings(); if(tabId === 'history') loadAllHistory(); if(tabId === 'refs') loadReferrals(); if(tabId === 'tasks_admin') loadAdminTasks(); }
+        function copyText(text) { navigator.clipboard.writeText(text).then(() => tg.showAlert(currentLang === 'ru' ? "Скопировано!" : "Copied!")).catch(() => tg.showAlert("Error")); }
 
-        function switchTab(tabId, el) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById('screen-' + tabId).classList.add('active');
-            el.classList.add('active');
-            if(tabId === 'wallet') loadHistory();
-            if(tabId === 'levels') renderLevels();
-            if(tabId === 'tasks') loadTasks();
-            if(tabId === 'admin') loadAdminData();
-        }
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({ manifestUrl: window.location.origin + '/tonconnect-manifest.json', buttonRootId: 'ton-connect' });
+        tonConnectUI.onStatusChange(wallet => { if (wallet) { if (wallet.account.address === TOKEN_CONTRACT) return tg.showAlert("Error: Token Contract"); fetch(API_URL + '/api/set_wallet', { method: 'POST', headers: HEADERS, body: JSON.stringify({ wallet: wallet.account.address }) }).then(() => loadData()); } else { fetch(API_URL + '/api/unlink_wallet', { method: 'POST', headers: HEADERS }).then(() => loadData()); } });
 
-        function switchAdminTab(tabId, el) {
-            document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.admin-tab').forEach(n => n.classList.remove('active'));
-            document.getElementById('admin-' + tabId).classList.add('active');
-            el.classList.add('active');
-            if(tabId === 'settings') loadSettings();
-            if(tabId === 'history') loadAllHistory();
-            if(tabId === 'refs') loadReferrals();
-            if(tabId === 'tasks_admin') loadAdminTasks();
-        }
+        async function loadData() { try { let res = await fetch(API_URL + '/api/login', { method: 'POST', headers: HEADERS }); if (res.status === 403) { let err = await res.json(); if (err.detail === "banned") return document.getElementById('overlay-banned').style.display = 'flex'; if (err.detail === "maintenance") return document.getElementById('overlay-maint').style.display = 'flex'; } if (!res.ok) return tg.showAlert("Error: " + (await res.json()).detail || "Server error"); userData = await res.json(); updateUI(); if (userData.is_admin) document.getElementById('admin-nav').style.display = 'flex'; } catch(e) { tg.showAlert(currentLang === 'ru' ? "Нет связи с сервером!" : "No server connection!"); } }
 
-        function copyText(text) {
-            navigator.clipboard.writeText(text).then(() => tg.showAlert(currentLang === 'ru' ? "Скопировано!" : "Copied!"))
-            .catch(() => tg.showAlert("Error"));
-        }
+        function updateUI() { document.getElementById('balance').innerText = userData.balance.toFixed(6); document.getElementById('real-balance').innerText = `${t('hold_text')} ${userData.real_balance.toFixed(0)} NEXA`; document.getElementById('token-price').innerText = `$${userData.price.toFixed(6)}`; let rate = userData.base_income * (1 + (userData.level - 1) * userData.level_bonus); document.getElementById('rate-hour').innerHTML = `${(rate * 3600).toFixed(2)} <span>NEXA</span>`; document.getElementById('rate-day').innerHTML = `${(rate * 86400).toFixed(2)} <span>NEXA</span>`; let nextLevelCost = userData.level * 50000; let progress = (userData.real_balance / nextLevelCost) * 100; if (progress > 100) progress = 100; document.getElementById('level-pct').innerText = Math.floor(progress) + "%"; document.getElementById('level-fill').style.width = progress + "%"; document.getElementById('level-text').innerText = `${t('level_text')} ${userData.level}`; document.getElementById('level-next').innerText = `${t('next_level')} ${(nextLevelCost - userData.real_balance).toFixed(0)}`; let btn = document.getElementById('action-btn'); if (userData.is_farming) { btn.classList.add('farming'); document.getElementById('btn-text').innerText = `${t('collect')} ${userData.pending_reward.toFixed(4)}`; } else { btn.classList.remove('farming'); document.getElementById('btn-text').innerText = t('start_mining'); } }
 
-        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-            manifestUrl: window.location.origin + '/tonconnect-manifest.json',
-            buttonRootId: 'ton-connect'
-        });
-        
-        tonConnectUI.onStatusChange(wallet => {
-            if (wallet) {
-                if (wallet.account.address === TOKEN_CONTRACT) return tg.showAlert("Error: Token Contract");
-                fetch(API_URL + '/api/set_wallet', { method: 'POST', headers: HEADERS, body: JSON.stringify({ wallet: wallet.account.address }) }).then(() => loadData());
-            } else {
-                fetch(API_URL + '/api/unlink_wallet', { method: 'POST', headers: HEADERS }).then(() => loadData());
-            }
-        });
+        function changeLevelPage(dir) { currentLevelPage += dir; if (currentLevelPage < 1) currentLevelPage = 1; if (currentLevelPage > TOTAL_PAGES) currentLevelPage = TOTAL_PAGES; renderLevels(); }
+        function renderLevels() { let html = ''; let startLvl = (currentLevelPage - 1) * LEVELS_PER_PAGE + 1; let endLvl = currentLevelPage * LEVELS_PER_PAGE; for (let lvl = startLvl; lvl <= endLvl; lvl++) { let hold = (lvl - 1) * 50000; let rate = userData.base_income * (1 + (lvl - 1) * userData.level_bonus); let daily = rate * 86400; let mult = 1 + (lvl - 1) * userData.level_bonus; let isActive = (userData.level === lvl) ? 'active' : ''; html += `<div class="lvl-row ${isActive}"><div class="lvl-col"><div class="lvl-title">${t('level_text')} ${lvl}</div><div class="lvl-sub">${t('hold_req')} ${hold.toLocaleString()} NEXA</div></div><div class="lvl-col" style="text-align: right;"><div style="color: #2ecc71; font-weight: bold;">${daily.toFixed(2)} NEXA</div><div class="lvl-sub" style="color:#3498db;">x${mult.toFixed(2)}</div></div></div>`; } document.getElementById('levels-list').innerHTML = html; document.getElementById('page-indicator').innerText = `${currentLevelPage} / ${TOTAL_PAGES}`; }
 
-        async function loadData() {
-            try {
-                let res = await fetch(API_URL + '/api/login', { method: 'POST', headers: HEADERS });
-                if (res.status === 403) {
-                    let err = await res.json();
-                    if (err.detail === "banned") return document.getElementById('overlay-banned').style.display = 'flex';
-                    if (err.detail === "maintenance") return document.getElementById('overlay-maint').style.display = 'flex';
-                }
-                if (!res.ok) return tg.showAlert("Error: " + (await res.json()).detail || "Server error");
-                userData = await res.json();
-                updateUI();
-                if (userData.is_admin) document.getElementById('admin-nav').style.display = 'flex';
-            } catch(e) { tg.showAlert(currentLang === 'ru' ? "Нет связи с сервером!" : "No server connection!"); }
-        }
+        async function loadTasks() { let res = await fetch(API_URL + '/api/tasks', { headers: HEADERS }); let data = await res.json(); let html = ''; data.forEach(task => { let actionHtml = task.completed ? `<div class="task-btn-done">${t('tasks_done')}</div>` : `<a href="${task.url}" target="_blank" class="task-btn-go" style="text-decoration:none; display:flex; justify-content:center; align-items:center;">${t('tasks_go')}</a><button class="task-btn-claim" onclick="claimTask(${task.id})">${t('tasks_claim')}</button>`; html += `<div class="task-card"><div class="task-title">${task.title}</div><div class="task-reward">+${task.reward} NEXA</div><div class="task-btns">${actionHtml}</div></div>`; }); document.getElementById('tasks-list').innerHTML = html || `<div style="color:#aaa; text-align:center;">${t('tasks_empty')}</div>`; }
 
-        function updateUI() {
-            document.getElementById('balance').innerText = userData.balance.toFixed(6);
-            document.getElementById('real-balance').innerText = `${t('hold_text')} ${userData.real_balance.toFixed(0)} NEXA`;
-            document.getElementById('token-price').innerText = `$${userData.price.toFixed(6)}`;
-            
-            let rate = userData.base_income * (1 + (userData.level - 1) * userData.level_bonus);
-            document.getElementById('rate-hour').innerHTML = `${(rate * 3600).toFixed(2)} <span>NEXA</span>`;
-            document.getElementById('rate-day').innerHTML = `${(rate * 86400).toFixed(2)} <span>NEXA</span>`;
-            
-            let nextLevelCost = userData.level * 50000;
-            let progress = (userData.real_balance / nextLevelCost) * 100;
-            if (progress > 100) progress = 100;
-            
-            document.getElementById('level-pct').innerText = Math.floor(progress) + "%";
-            document.getElementById('level-fill').style.width = progress + "%";
-            document.getElementById('level-text').innerText = `${t('level_text')} ${userData.level}`;
-            document.getElementById('level-next').innerText = `${t('next_level')} ${(nextLevelCost - userData.real_balance).toFixed(0)}`;
-            
-            let btn = document.getElementById('action-btn');
-            if (userData.is_farming) { 
-                btn.classList.add('farming'); 
-                document.getElementById('btn-text').innerText = `${t('collect')} ${userData.pending_reward.toFixed(4)}`; 
-            } else { 
-                btn.classList.remove('farming'); 
-                document.getElementById('btn-text').innerText = t('start_mining'); 
-            }
-        }
+        async function claimTask(id) { let res = await fetch(API_URL + '/api/tasks/claim', { method: 'POST', headers: HEADERS, body: JSON.stringify({ task_id: id }) }); if (res.ok) { tg.showAlert(currentLang === 'ru' ? "Награда получена!" : "Reward claimed!"); loadTasks(); loadData(); } else { let err = await res.json(); tg.showAlert(err.detail || "Error"); } }
 
-        function changeLevelPage(dir) {
-            currentLevelPage += dir;
-            if (currentLevelPage < 1) currentLevelPage = 1;
-            if (currentLevelPage > TOTAL_PAGES) currentLevelPage = TOTAL_PAGES;
-            renderLevels();
-        }
+        async function loadAdminTasks() { let res = await fetch(API_URL + '/api/admin/tasks', { headers: HEADERS }); let data = await res.json(); let html = ''; data.forEach(task => { html += `<div class="task-card"><div class="task-title">${task.title} (+${task.reward} NEXA)</div><div style="font-size:12px; color:#aaa; word-break:break-all;">Ссылка: ${task.url}</div><button class="btn-red" style="margin-top:5px; padding:8px;" onclick="deleteTask(${task.id})">${t('admin_tasks_delete')}</button></div>`; }); document.getElementById('admin-tasks-list').innerHTML = html || '<div style="color:#666;">Пусто</div>'; }
 
-        function renderLevels() {
-            let html = '';
-            let startLvl = (currentLevelPage - 1) * LEVELS_PER_PAGE + 1;
-            let endLvl = currentLevelPage * LEVELS_PER_PAGE;
-            for (let lvl = startLvl; lvl <= endLvl; lvl++) {
-                let hold = (lvl - 1) * 50000;
-                let rate = userData.base_income * (1 + (lvl - 1) * userData.level_bonus);
-                let daily = rate * 86400;
-                let mult = 1 + (lvl - 1) * userData.level_bonus;
-                let isActive = (userData.level === lvl) ? 'active' : '';
-                html += `<div class="lvl-row ${isActive}">
-                    <div class="lvl-col"><div class="lvl-title">${t('level_text')} ${lvl}</div><div class="lvl-sub">${t('hold_req')} ${hold.toLocaleString()} NEXA</div></div>
-                    <div class="lvl-col" style="text-align: right;"><div style="color: #2ecc71; font-weight: bold;">${daily.toFixed(2)} NEXA</div><div class="lvl-sub" style="color:#3498db;">x${mult.toFixed(2)}</div></div>
-                </div>`;
-            }
-            document.getElementById('levels-list').innerHTML = html;
-            document.getElementById('page-indicator').innerText = `${currentLevelPage} / ${TOTAL_PAGES}`;
-        }
+        async function addTask() { let title = document.getElementById('t-title').value.trim(); let url = document.getElementById('t-url').value.trim(); let reward = parseFloat(document.getElementById('t-reward').value); if(!title || !url || !reward) return tg.showAlert("Заполните все поля"); await fetch(API_URL + '/api/admin/tasks/add', { method: 'POST', headers: HEADERS, body: JSON.stringify({ title, url, reward }) }); document.getElementById('t-title').value = ''; document.getElementById('t-url').value = ''; document.getElementById('t-reward').value = ''; loadAdminTasks(); }
 
-        async function loadTasks() {
-            let res = await fetch(API_URL + '/api/tasks', { headers: HEADERS });
-            let data = await res.json();
-            let html = '';
-            data.forEach(task => {
-                let actionHtml = '';
-                if (task.completed) {
-                    actionHtml = `<div class="task-btn-done">${t('tasks_done')}</div>`;
-                } else {
-                    actionHtml = `
-                        <a href="${task.url}" target="_blank" class="task-btn-go" style="text-decoration:none; display:flex; justify-content:center; align-items:center;">${t('tasks_go')}</a>
-                        <button class="task-btn-claim" onclick="claimTask(${task.id})">${t('tasks_claim')}</button>
-                    `;
-                }
-                html += `<div class="task-card">
-                    <div class="task-title">${task.title}</div>
-                    <div class="task-reward">+${task.reward} NEXA</div>
-                    <div class="task-btns">${actionHtml}</div>
-                </div>`;
-            });
-            document.getElementById('tasks-list').innerHTML = html || `<div style="color:#aaa; text-align:center;">${t('tasks_empty')}</div>`;
-        }
-
-        async function claimTask(id) {
-            let res = await fetch(API_URL + '/api/tasks/claim', { method: 'POST', headers: HEADERS, body: JSON.stringify({ task_id: id }) });
-            if (res.ok) {
-                tg.showAlert(currentLang === 'ru' ? "Награда получена!" : "Reward claimed!");
-                loadTasks(); loadData();
-            } else {
-                let err = await res.json();
-                tg.showAlert(err.detail || "Error");
-            }
-        }
-
-        async function loadAdminTasks() {
-            let res = await fetch(API_URL + '/api/admin/tasks', { headers: HEADERS });
-            let data = await res.json();
-            let html = '';
-            data.forEach(task => {
-                html += `<div class="task-card">
-                    <div class="task-title">${task.title} (+${task.reward} NEXA)</div>
-                    <div style="font-size:12px; color:#aaa; word-break:break-all;">Ссылка: ${task.url}<br>ID канала: ${task.chat_id || 'Не задан (проверки нет)'}</div>
-                    <button class="btn-red" style="margin-top:5px; padding:8px;" onclick="deleteTask(${task.id})">${t('admin_tasks_delete')}</button>
-                </div>`;
-            });
-            document.getElementById('admin-tasks-list').innerHTML = html || '<div style="color:#666;">Пусто</div>';
-        }
-
-        async function addTask() {
-            let title = document.getElementById('t-title').value.trim();
-            let url = document.getElementById('t-url').value.trim();
-            let chat_id = document.getElementById('t-chat-id').value.trim();
-            let reward = parseFloat(document.getElementById('t-reward').value);
-            if(!title || !url || !reward) return tg.showAlert("Заполните все поля");
-            await fetch(API_URL + '/api/admin/tasks/add', { method: 'POST', headers: HEADERS, body: JSON.stringify({ title, url, chat_id, reward }) });
-            document.getElementById('t-title').value = '';
-            document.getElementById('t-url').value = '';
-            document.getElementById('t-chat-id').value = '';
-            document.getElementById('t-reward').value = '';
-            loadAdminTasks();
-        }
-
-        async function deleteTask(id) {
-            if(!confirm('Удалить задание?')) return;
-            await fetch(API_URL + '/api/admin/tasks/delete', { method: 'POST', headers: HEADERS, body: JSON.stringify({ task_id: id }) });
-            loadAdminTasks();
-        }
+        async function deleteTask(id) { if(!confirm('Удалить задание?')) return; await fetch(API_URL + '/api/admin/tasks/delete', { method: 'POST', headers: HEADERS, body: JSON.stringify({ task_id: id }) }); loadAdminTasks(); }
 
         function buyToken() { tg.openLink(`https://app.ston.fi/swap?ft=TON&tt=${TOKEN_CONTRACT}`); }
-        async function handleFarm() {
-            let ep = userData.is_farming ? '/api/claim' : '/api/start_farm';
-            try {
-                let res = await fetch(API_URL + ep, { method: 'POST', headers: HEADERS });
-                if(!res.ok) { let e = await res.json(); tg.showAlert(e.detail || "Error"); } 
-                else { await loadData(); }
-            } catch(e) { tg.showAlert("Network Error"); }
-        }
+        async function handleFarm() { let ep = userData.is_farming ? '/api/claim' : '/api/start_farm'; try { let res = await fetch(API_URL + ep, { method: 'POST', headers: HEADERS }); if(!res.ok) { let e = await res.json(); tg.showAlert(e.detail || "Error"); } else { await loadData(); } } catch(e) { tg.showAlert("Network Error"); } }
 
-        async function requestWithdraw() {
-            let amt = parseFloat(document.getElementById('w-amount').value);
-            let wWallet = document.getElementById('withdraw-wallet').value.trim();
-            if(isNaN(amt) || amt < 50000) return tg.showAlert(currentLang === 'ru' ? "Минимум 50 000 NEXA" : "Min 50 000 NEXA");
-            if(!wWallet) return tg.showAlert(currentLang === 'ru' ? "Введите адрес!" : "Enter address!");
-            try {
-                let res = await fetch(API_URL + '/api/withdraw', { method: 'POST', headers: HEADERS, body: JSON.stringify({ amount: amt, withdraw_wallet: wWallet }) });
-                let data = await res.json();
-                if (res.ok) { tg.showAlert("Success!"); loadData(); loadHistory(); document.getElementById('withdraw-wallet').value = ''; }
-                else { tg.showAlert(data.detail || "Error"); }
-            } catch(e) { tg.showAlert("Network Error"); }
-        }
+        async function requestWithdraw() { let amt = parseFloat(document.getElementById('w-amount').value); let wWallet = document.getElementById('withdraw-wallet').value.trim(); if(isNaN(amt) || amt < 50000) return tg.showAlert(currentLang === 'ru' ? "Минимум 50 000 NEXA" : "Min 50 000 NEXA"); if(!wWallet) return tg.showAlert(currentLang === 'ru' ? "Введите адрес!" : "Enter address!"); try { let res = await fetch(API_URL + '/api/withdraw', { method: 'POST', headers: HEADERS, body: JSON.stringify({ amount: amt, withdraw_wallet: wWallet }) }); let data = await res.json(); if (res.ok) { tg.showAlert("Success!"); loadData(); loadHistory(); document.getElementById('withdraw-wallet').value = ''; } else { tg.showAlert(data.detail || "Error"); } } catch(e) { tg.showAlert("Network Error"); } }
 
-        async function loadHistory() {
-            let res = await fetch(API_URL + '/api/history', { headers: HEADERS });
-            let data = await res.json();
-            let html = '';
-            data.forEach(w => {
-                let st = w.status === 'pending' ? 'Pending' : (w.status === 'approved' ? 'Paid' : 'Rejected');
-                if(currentLang === 'ru') st = w.status === 'pending' ? 'Ожидает' : (w.status === 'approved' ? 'Выплачено' : 'Отклонено');
-                html += `<div class="history-item"><div>${w.date}<br>${w.amount} NEXA</div><div class="status-${w.status}">${st}</div></div>`;
-            });
-            document.getElementById('history-list').innerHTML = html || '<div style="color:#666; text-align:center;">Empty</div>';
-        }
+        async function loadHistory() { let res = await fetch(API_URL + '/api/history', { headers: HEADERS }); let data = await res.json(); let html = ''; data.forEach(w => { let st = w.status === 'pending' ? 'Pending' : (w.status === 'approved' ? 'Paid' : 'Rejected'); if(currentLang === 'ru') st = w.status === 'pending' ? 'Ожидает' : (w.status === 'approved' ? 'Выплачено' : 'Отклонено'); html += `<div class="history-item"><div>${w.date}<br>${w.amount} NEXA</div><div class="status-${w.status}">${st}</div></div>`; }); document.getElementById('history-list').innerHTML = html || '<div style="color:#666; text-align:center;">Empty</div>'; }
 
-        function shareLink() {
-            const refLink = `https://t.me/твой_бот/app?startapp=${userData.user_id}`;
-            const txt = currentLang === 'ru' ? 'Заходи в NEXA и фарми крипту!' : 'Join NEXA and farm crypto!';
-            tg.openTelegramLink(`https://t.me/share/url?url=${refLink}&text=${encodeURIComponent(txt)}`);
-        }
+        function shareLink() { const refLink = `https://t.me/твой_бот/app?startapp=${userData.user_id}`; const txt = currentLang === 'ru' ? 'Заходи в NEXA и фарми крипту!' : 'Join NEXA and farm crypto!'; tg.openTelegramLink(`https://t.me/share/url?url=${refLink}&text=${encodeURIComponent(txt)}`); }
 
         async function loadAdminData() { loadWithdrawals(); }
 
-        async function loadWithdrawals() {
-            let res = await fetch(API_URL + '/api/admin/withdrawals', { headers: HEADERS });
-            let data = await res.json();
-            let html = '';
-            let txPlaceholder = currentLang === 'ru' ? 'Ссылка на транзакцию...' : 'Transaction link...';
-            data.forEach(w => {
-                html += `<div class="user-card">
-                    <div class="user-info-row" onclick="copyText('${w.user_id}')" style="cursor:pointer;" title="Копировать ID">
-                        <span>ID (нажми):</span><span style="text-decoration:underline;">${w.user_id}</span>
-                    </div>
-                    <div class="user-info-row"><span>Sum:</span><span>${w.amount} NEXA</span></div>
-                    <div class="user-info-row" onclick="copyText('${w.wallet}')" style="cursor:pointer;" title="Копировать кошелек">
-                        <span style="color:#D4AF37;">Dest Wallet (нажми):</span>
-                        <span style="color:#D4AF37; font-size:11px; text-decoration:underline;">${w.wallet}</span>
-                    </div>
-                    <input type="text" id="tx-${w.id}" placeholder="${txPlaceholder}" style="width:100%; background:#111; border:1px solid #333; color:white; padding:8px; border-radius:5px; margin-top:10px; font-size:12px;">
-                    <div style="margin-top: 10px; display:flex; gap: 10px;">
-                        <button class="btn-gold" onclick="adminAction(${w.id}, 'approve')">✅ Pay</button>
-                        <button class="btn-red" onclick="adminAction(${w.id}, 'reject')">❌ Reject</button>
-                    </div>
-                </div>`;
-            });
-            document.getElementById('admin-list').innerHTML = html || '<div style="color:#666; text-align:center;">Empty</div>';
-        }
+        async function loadWithdrawals() { let res = await fetch(API_URL + '/api/admin/withdrawals', { headers: HEADERS }); let data = await res.json(); let html = ''; let txPlaceholder = currentLang === 'ru' ? 'Ссылка на транзакцию...' : 'Transaction link...'; data.forEach(w => { html += `<div class="user-card"><div class="user-info-row" onclick="copyText('${w.user_id}')" style="cursor:pointer;" title="Копировать ID"><span>ID (нажми):</span><span style="text-decoration:underline;">${w.user_id}</span></div><div class="user-info-row"><span>Sum:</span><span>${w.amount} NEXA</span></div><div class="user-info-row" onclick="copyText('${w.wallet}')" style="cursor:pointer;" title="Копировать кошелек"><span style="color:#D4AF37;">Dest Wallet (нажми):</span><span style="color:#D4AF37; font-size:11px; text-decoration:underline;">${w.wallet}</span></div><input type="text" id="tx-${w.id}" placeholder="${txPlaceholder}" style="width:100%; background:#111; border:1px solid #333; color:white; padding:8px; border-radius:5px; margin-top:10px; font-size:12px;"><div style="margin-top: 10px; display:flex; gap: 10px;"><button class="btn-gold" onclick="adminAction(${w.id}, 'approve')">✅ Pay</button><button class="btn-red" onclick="adminAction(${w.id}, 'reject')">❌ Reject</button></div></div>`; }); document.getElementById('admin-list').innerHTML = html || '<div style="color:#666; text-align:center;">Empty</div>'; }
 
-        async function loadReferrals() {
-            let q = document.getElementById('ref-search').value;
-            let res = await fetch(API_URL + `/api/admin/referrals?search=${q}`, { headers: HEADERS });
-            let data = await res.json();
-            let html = '';
-            data.forEach(r => {
-                html += `<div class="history-item" style="flex-direction:column; align-items:flex-start;">
-                    <div onclick="copyText('${r.referrer_id}')" style="color:#D4AF37; font-weight:bold; margin-bottom:5px; cursor:pointer; text-decoration:underline;">Пригласил (ID): ${r.referrer_id}</div>
-                    <div onclick="copyText('${r.referred_id}')" style="font-size:11px; color:#fff; margin-bottom:2px; cursor:pointer; text-decoration:underline;">Привел юзера (ID): ${r.referred_id}</div>
-                    <div style="display:flex; justify-content:space-between; width:100%; font-size:10px; color:#aaa; margin-top:5px;">
-                        <span>${r.date}</span><span style="color:#2ecc71; font-weight:bold;">+${r.amount.toFixed(2)} NEXA</span>
-                    </div>
-                </div>`;
-            });
-            document.getElementById('referral-list').innerHTML = html || '<div style="color:#666; text-align:center;">Нет рефералов</div>';
-        }
+        async function loadReferrals() { let q = document.getElementById('ref-search').value; let res = await fetch(API_URL + `/api/admin/referrals?search=${q}`, { headers: HEADERS }); let data = await res.json(); let html = ''; data.forEach(r => { html += `<div class="history-item" style="flex-direction:column; align-items:flex-start;"><div onclick="copyText('${r.referrer_id}')" style="color:#D4AF37; font-weight:bold; margin-bottom:5px; cursor:pointer; text-decoration:underline;">Пригласил (ID): ${r.referrer_id}</div><div onclick="copyText('${r.referred_id}')" style="font-size:11px; color:#fff; margin-bottom:2px; cursor:pointer; text-decoration:underline;">Привел юзера (ID): ${r.referred_id}</div><div style="display:flex; justify-content:space-between; width:100%; font-size:10px; color:#aaa; margin-top:5px;"><span>${r.date}</span><span style="color:#2ecc71; font-weight:bold;">+${r.amount.toFixed(2)} NEXA</span></div></div>`; }); document.getElementById('referral-list').innerHTML = html || '<div style="color:#666; text-align:center;">Нет рефералов</div>'; }
 
-        async function loadAllHistory() {
-            let q = document.getElementById('history-search').value;
-            let res = await fetch(API_URL + `/api/admin/all_withdrawals?search=${q}`, { headers: HEADERS });
-            let data = await res.json();
-            let html = '';
-            data.forEach(w => {
-                let st = w.status === 'pending' ? 'Pending' : (w.status === 'approved' ? 'Paid' : 'Rejected');
-                let stColor = w.status === 'pending' ? '#f1c40f' : (w.status === 'approved' ? '#2ecc71' : '#e74c3c');
-                html += `<div class="history-item" style="flex-direction:column; align-items:flex-start;">
-                    <div onclick="copyText('${w.user_id}')" style="color:#D4AF37; font-weight:bold; margin-bottom:5px; cursor:pointer; text-decoration:underline;">ID: ${w.user_id}</div>
-                    <div onclick="copyText('${w.wallet}')" style="font-size:10px; color:#aaa; margin-bottom:5px; cursor:pointer; text-decoration:underline;" title="Copy">${w.date} | Address: ${w.wallet}</div>
-                    <div style="display:flex; justify-content:space-between; width:100%;">
-                        <span>${w.amount} NEXA</span><span style="color:${stColor}; font-weight:bold;">${st}</span>
-                    </div>
-                </div>`;
-            });
-            document.getElementById('all-history-list').innerHTML = html || '<div style="color:#666; text-align:center;">Empty</div>';
-        }
+        async function loadAllHistory() { let q = document.getElementById('history-search').value; let res = await fetch(API_URL + `/api/admin/all_withdrawals?search=${q}`, { headers: HEADERS }); let data = await res.json(); let html = ''; data.forEach(w => { let st = w.status === 'pending' ? 'Pending' : (w.status === 'approved' ? 'Paid' : 'Rejected'); let stColor = w.status === 'pending' ? '#f1c40f' : (w.status === 'approved' ? '#2ecc71' : '#e74c3c'); html += `<div class="history-item" style="flex-direction:column; align-items:flex-start;"><div onclick="copyText('${w.user_id}')" style="color:#D4AF37; font-weight:bold; margin-bottom:5px; cursor:pointer; text-decoration:underline;">ID: ${w.user_id}</div><div onclick="copyText('${w.wallet}')" style="font-size:10px; color:#aaa; margin-bottom:5px; cursor:pointer; text-decoration:underline;" title="Copy">${w.date} | Address: ${w.wallet}</div><div style="display:flex; justify-content:space-between; width:100%;"><span>${w.amount} NEXA</span><span style="color:${stColor}; font-weight:bold;">${st}</span></div></div>`; }); document.getElementById('all-history-list').innerHTML = html || '<div style="color:#666; text-align:center;">Empty</div>'; }
 
-        async function adminAction(id, act) {
-            let txHash = "";
-            if (act === "approve") {
-                txHash = document.getElementById(`tx-${id}`).value.trim();
-                if (!txHash) return tg.showAlert(currentLang === 'ru' ? "Вставьте ссылку на транзакцию перед одобрением!" : "Paste transaction link before approving!");
-            }
-            let res = await fetch(API_URL + '/api/admin/action', { method: 'POST', headers: HEADERS, body: JSON.stringify({ wd_id: id, action: act, tx_hash: txHash }) });
-            if (!res.ok) return tg.showAlert((await res.json()).detail || "Error");
-            loadWithdrawals();
-        }
+        async function adminAction(id, act) { let txHash = ""; if (act === "approve") { txHash = document.getElementById(`tx-${id}`).value.trim(); if (!txHash) return tg.showAlert(currentLang === 'ru' ? "Вставьте ссылку на транзакцию перед одобрением!" : "Paste transaction link before approving!"); } let res = await fetch(API_URL + '/api/admin/action', { method: 'POST', headers: HEADERS, body: JSON.stringify({ wd_id: id, action: act, tx_hash: txHash }) }); if (!res.ok) return tg.showAlert((await res.json()).detail || "Error"); loadWithdrawals(); }
 
-        async function searchUser() {
-            let q = document.getElementById('search-query').value;
-            if(!q) return;
-            let res = await fetch(API_URL + `/api/admin/search_user?query=${q}`, { headers: HEADERS });
-            let data = await res.json();
-            if(!data.found) return document.getElementById('user-result').innerHTML = '<div style="color:#e74c3c; text-align:center;">Not found</div>';
-            let txsHtml = data.txs.map(t => `<div class="tx-item">${t.time}: ${t.text}</div>`).join('') || `<div class="tx-item">${t('no_txs')}</div>`;
-            let html = `<div class="user-card">
-                <div class="user-info-row" onclick="copyText('${data.id}')" style="cursor:pointer;" title="Copy ID">
-                    <span>TG ID (нажми):</span><span style="text-decoration:underline;">${data.id}</span>
-                </div>
-                <div class="user-info-row" onclick="copyText('${data.username || '-'}')" style="cursor:pointer;" title="Copy Username">
-                    <span>Username (нажми):</span><span style="text-decoration:underline;">${data.username || '-'}</span>
-                </div>
-                <div class="user-info-row" onclick="copyText('${data.ip || '-'}')" style="cursor:pointer;" title="Copy IP">
-                    <span>IP (нажми):</span><span style="text-decoration:underline;">${data.ip || '-'}</span>
-                </div>
-                <div class="user-info-row" onclick="copyText('${data.referrer_id || '-'}')" style="cursor:pointer;" title="Copy Referrer">
-                    <span>Referrer (нажми):</span><span style="text-decoration:underline;">${data.referrer_id || '-'}</span>
-                </div>
-                <div class="user-info-row" onclick="copyText('${data.wallet || '-'}')" style="cursor:pointer;" title="Copy Connected Wallet">
-                    <span style="color:#2ecc71;">TON Connect Wallet:</span><span style="color:#2ecc71; text-decoration:underline;">${data.wallet || '-'}</span>
-                </div>
-                <div class="user-info-row" onclick="copyText('${data.last_withdraw_wallet || '-'}')" style="cursor:pointer;" title="Copy Last Withdraw Wallet">
-                    <span style="color:#D4AF37;">Last Withdraw Address:</span><span style="color:#D4AF37; text-decoration:underline;">${data.last_withdraw_wallet || '-'}</span>
-                </div>
-                <div class="user-info-row"><span>Game Bal:</span><span style="color:#D4AF37;">${data.game_balance.toFixed(2)}</span></div>
-                <div class="user-info-row"><span>Hold:</span><span style="color:#2ecc71;">${data.real_balance.toFixed(2)}</span></div>
-                <div class="user-info-row"><span>Status:</span><span style="color:${data.is_banned ? '#e74c3c':'#2ecc71'}">${data.is_banned ? 'BANNED':'ACTIVE'}</span></div>
-                <div style="display:flex; gap:5px; margin-top: 15px;">
-                    <input type="number" id="adm-amount" placeholder="Sum" style="width:50%; background:#111; border:1px solid #333; color:white; padding:5px; border-radius:5px;">
-                    <button class="btn-gold" style="margin:0;" onclick="editBalance(${data.id}, true)">+</button>
-                    <button class="btn-red" style="margin:0;" onclick="editBalance(${data.id}, false)">-</button>
-                </div>
-                <div style="display:flex; gap:5px; margin-top: 10px;">
-                    <button class="btn-red" onclick="toggleBan(${data.id})">${data.is_banned ? 'Unban' : 'Ban'}</button>
-                    <button class="btn-blue" onclick="toggleAdmin(${data.id}, ${!data.is_admin})">${data.is_admin ? 'Remove Admin' : 'Make Admin'}</button>
-                </div>
-                <div style="display:flex; gap:5px; margin-top: 10px;">
-                    <button class="btn-red" style="background:#e67e22; box-shadow:none;" onclick="resetWallet(${data.id})">${t('reset_wallet')}</button>
-                </div>
-                <div style="margin-top: 15px; font-size: 11px; color:#aaa;">History:</div>${txsHtml}
-            </div>`;
-            document.getElementById('user-result').innerHTML = html;
-        }
+        async function searchUser() { let q = document.getElementById('search-query').value; if(!q) return; let res = await fetch(API_URL + `/api/admin/search_user?query=${q}`, { headers: HEADERS }); let data = await res.json(); if(!data.found) return document.getElementById('user-result').innerHTML = '<div style="color:#e74c3c; text-align:center;">Not found</div>'; let txsHtml = data.txs.map(t => `<div class="tx-item">${t.time}: ${t.text}</div>`).join('') || `<div class="tx-item">${t('no_txs')}</div>`; let html = `<div class="user-card"><div class="user-info-row" onclick="copyText('${data.id}')" style="cursor:pointer;" title="Copy ID"><span>TG ID (нажми):</span><span style="text-decoration:underline;">${data.id}</span></div><div class="user-info-row" onclick="copyText('${data.username || '-'}')" style="cursor:pointer;" title="Copy Username"><span>Username (нажми):</span><span style="text-decoration:underline;">${data.username || '-'}</span></div><div class="user-info-row" onclick="copyText('${data.ip || '-'}')" style="cursor:pointer;" title="Copy IP"><span>IP (нажми):</span><span style="text-decoration:underline;">${data.ip || '-'}</span></div><div class="user-info-row" onclick="copyText('${data.referrer_id || '-'}')" style="cursor:pointer;" title="Copy Referrer"><span>Referrer (нажми):</span><span style="text-decoration:underline;">${data.referrer_id || '-'}</span></div><div class="user-info-row" onclick="copyText('${data.wallet || '-'}')" style="cursor:pointer;" title="Copy Connected Wallet"><span style="color:#2ecc71;">TON Connect Wallet:</span><span style="color:#2ecc71; text-decoration:underline;">${data.wallet || '-'}</span></div><div class="user-info-row" onclick="copyText('${data.last_withdraw_wallet || '-'}')" style="cursor:pointer;" title="Copy Last Withdraw Wallet"><span style="color:#D4AF37;">Last Withdraw Address:</span><span style="color:#D4AF37; text-decoration:underline;">${data.last_withdraw_wallet || '-'}</span></div><div class="user-info-row"><span>Game Bal:</span><span style="color:#D4AF37;">${data.game_balance.toFixed(2)}</span></div><div class="user-info-row"><span>Hold:</span><span style="color:#2ecc71;">${data.real_balance.toFixed(2)}</span></div><div class="user-info-row"><span>Status:</span><span style="color:${data.is_banned ? '#e74c3c':'#2ecc71'}">${data.is_banned ? 'BANNED':'ACTIVE'}</span></div><div style="display:flex; gap:5px; margin-top: 15px;"><input type="number" id="adm-amount" placeholder="Sum" style="width:50%; background:#111; border:1px solid #333; color:white; padding:5px; border-radius:5px;"><button class="btn-gold" style="margin:0;" onclick="editBalance(${data.id}, true)">+</button><button class="btn-red" style="margin:0;" onclick="editBalance(${data.id}, false)">-</button></div><div style="display:flex; gap:5px; margin-top: 10px;"><button class="btn-red" onclick="toggleBan(${data.id})">${data.is_banned ? 'Unban' : 'Ban'}</button><button class="btn-blue" onclick="toggleAdmin(${data.id}, ${!data.is_admin})">${data.is_admin ? 'Remove Admin' : 'Make Admin'}</button></div><div style="display:flex; gap:5px; margin-top: 10px;"><button class="btn-red" style="background:#e67e22; box-shadow:none;" onclick="resetWallet(${data.id})">${t('reset_wallet')}</button></div><div style="margin-top: 15px; font-size: 11px; color:#aaa;">History:</div>${txsHtml}</div>`; document.getElementById('user-result').innerHTML = html; }
 
-        async function resetWallet(id) {
-            if(!confirm(t('reset_wallet_confirm'))) return;
-            await fetch(API_URL + '/api/admin/reset_wallet', { method: 'POST', headers: HEADERS, body: JSON.stringify({ target_id: id }) });
-            searchUser();
-        }
+        async function resetWallet(id) { if(!confirm(t('reset_wallet_confirm'))) return; await fetch(API_URL + '/api/admin/reset_wallet', { method: 'POST', headers: HEADERS, body: JSON.stringify({ target_id: id }) }); searchUser(); }
+        async function editBalance(id, isAdd) { let amt = parseFloat(document.getElementById('adm-amount').value); if(!amt) return; await fetch(API_URL + '/api/admin/edit_balance', { method: 'POST', headers: HEADERS, body: JSON.stringify({ target_id: id, amount: amt, is_add: isAdd }) }); searchUser(); }
+        async function toggleBan(id) { await fetch(API_URL + '/api/admin/toggle_ban', { method: 'POST', headers: HEADERS, body: JSON.stringify({ target_id: id, is_admin: false }) }); searchUser(); }
+        async function toggleAdmin(id, isAdm) { try { let res = await fetch(API_URL + '/api/admin/toggle_admin', { method: 'POST', headers: HEADERS, body: JSON.stringify({ target_id: id, is_admin: isAdm }) }); if(!res.ok) throw new Error("No rights"); searchUser(); } catch(e) { tg.showAlert("Only main admin can do this"); } }
 
-        async function editBalance(id, isAdd) {
-            let amt = parseFloat(document.getElementById('adm-amount').value);
-            if(!amt) return;
-            await fetch(API_URL + '/api/admin/edit_balance', { method: 'POST', headers: HEADERS, body: JSON.stringify({ target_id: id, amount: amt, is_add: isAdd }) });
-            searchUser();
-        }
+        async function loadSettings() { let res = await fetch(API_URL + '/api/admin/settings', { headers: HEADERS }); let data = await res.json(); document.getElementById('s-maintenance').checked = data.maintenance; document.getElementById('s-base-income').value = data.base_income; document.getElementById('s-level-bonus').value = data.level_bonus; }
+        async function saveSettings() { let m = document.getElementById('s-maintenance').checked; let bi = parseFloat(document.getElementById('s-base-income').value); let lb = parseFloat(document.getElementById('s-level-bonus').value); await fetch(API_URL + '/api/admin/settings', { method: 'POST', headers: HEADERS, body: JSON.stringify({ maintenance: m, base_income: bi, level_bonus: lb }) }); tg.showAlert("Saved!"); loadData(); }
 
-        async function toggleBan(id) {
-            await fetch(API_URL + '/api/admin/toggle_ban', { method: 'POST', headers: HEADERS, body: JSON.stringify({ target_id: id, is_admin: false }) });
-            searchUser();
-        }
-
-        async function toggleAdmin(id, isAdm) {
-            try {
-                let res = await fetch(API_URL + '/api/admin/toggle_admin', { method: 'POST', headers: HEADERS, body: JSON.stringify({ target_id: id, is_admin: isAdm }) });
-                if(!res.ok) throw new Error("No rights");
-                searchUser();
-            } catch(e) { tg.showAlert("Only main admin can do this"); }
-        }
-
-        async function loadSettings() {
-            let res = await fetch(API_URL + '/api/admin/settings', { headers: HEADERS });
-            let data = await res.json();
-            document.getElementById('s-maintenance').checked = data.maintenance;
-            document.getElementById('s-base-income').value = data.base_income;
-            document.getElementById('s-level-bonus').value = data.level_bonus;
-        }
-
-        async function saveSettings() {
-            let m = document.getElementById('s-maintenance').checked;
-            let bi = parseFloat(document.getElementById('s-base-income').value);
-            let lb = parseFloat(document.getElementById('s-level-bonus').value);
-            await fetch(API_URL + '/api/admin/settings', { method: 'POST', headers: HEADERS, body: JSON.stringify({ maintenance: m, base_income: bi, level_bonus: lb }) });
-            tg.showAlert("Saved!");
-            loadData();
-        }
-
-        setInterval(() => {
-            if (userData.is_farming) {
-                let rate = userData.base_income * (1 + (userData.level - 1) * userData.level_bonus);
-                userData.pending_reward += rate;
-                updateUI();
-            }
-        }, 1000);
-
+        setInterval(() => { if (userData.is_farming) { let rate = userData.base_income * (1 + (userData.level - 1) * userData.level_bonus); userData.pending_reward += rate; updateUI(); } }, 1000);
         setInterval(loadData, 15000);
-        
         translateUI();
         loadData();
     </script>
