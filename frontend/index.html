@@ -14,11 +14,7 @@
         .bg-village { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('bg.jpg'); background-size: cover; background-position: center; z-index: -3; }
         .bg-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.55); z-index: -2; }
         .lamp-flicker { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; background: radial-gradient(circle at 50% 50%, rgba(255, 180, 50, 0.15) 0%, transparent 80%); animation: flicker 12s infinite; }
-        @keyframes flicker {
-            0%, 10%, 25%, 45%, 60%, 100% { opacity: 1; }
-            12%, 48%, 62% { opacity: 0.6; }
-            13%, 49%, 63% { opacity: 0.2; }
-        }
+        @keyframes flicker { 0%, 10%, 25%, 45%, 60%, 100% { opacity: 1; } 12%, 48%, 62% { opacity: 0.6; } 13%, 49%, 63% { opacity: 0.2; } }
 
         .snow-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: hidden; }
         .snowflake { position: absolute; top: -10px; background: white; border-radius: 50%; opacity: 0.9; filter: blur(1px); animation: fall linear infinite; box-shadow: 0 0 5px rgba(255,255,255,0.8); }
@@ -72,7 +68,7 @@
         .lvl-sub { font-size: 11px; color: #ccc; }
         
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: rgba(10, 10, 10, 0.95); border-top: 1px solid rgba(212,175,55,0.3); display: flex; justify-content: space-around; align-items: center; z-index: 100; backdrop-filter: blur(20px); padding: 0 5px;}
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: #666; font-size: 9px; gap: 4px; cursor: pointer; transition: 0.2s; width: 16%;}
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #666; font-size: 9px; gap: 4px; cursor: pointer; transition: 0.2s; width: 14%;}
         .nav-item.active { color: #D4AF37; }
         .nav-icon { font-size: 18px; }
         
@@ -98,6 +94,15 @@
         .user-info-row span:first-child { color: #aaa; }
         .user-info-row span:last-child { font-weight: bold; word-break: break-all; max-width: 60%; text-align: right;}
         .tx-item { font-size: 10px; color: #aaa; margin-top: 5px; border-top: 1px dashed #333; padding-top: 5px; }
+
+        /* Стили заданий */
+        .task-card { background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 15px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; backdrop-filter: blur(5px); }
+        .task-title { font-weight: 800; color: #D4AF37; font-size: 14px; }
+        .task-reward { font-size: 12px; color: #2ecc71; font-weight: bold; }
+        .task-btns { display: flex; gap: 10px; }
+        .task-btn-go { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); flex: 1; padding: 10px; border-radius: 10px; font-weight: bold; cursor: pointer; text-align: center; text-decoration: none; font-size: 13px; }
+        .task-btn-claim { background: #D4AF37; color: #000; border: none; flex: 1; padding: 10px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 13px; }
+        .task-btn-done { background: #333; color: #888; border: none; flex: 1; padding: 10px; border-radius: 10px; font-weight: bold; text-align: center; font-size: 13px;}
     </style>
 </head>
 <body>
@@ -115,6 +120,7 @@
         <p data-lang="maint_desc">Мы обновляем ферму. Пожалуйста, зайдите чуть позже.</p>
     </div>
 
+    <!-- ЭКРАН 1: МАЙНИНГ -->
     <div id="screen-mining" class="screen active">
         <div class="top-bar">
             <div class="top-left">
@@ -141,6 +147,7 @@
         </div>
     </div>
 
+    <!-- ЭКРАН 2: ОБМЕН -->
     <div id="screen-buy" class="screen">
         <h2 style="color: #D4AF37; margin-bottom: 20px; text-shadow: 0 2px 4px #000;" data-lang="buy_title">Купить NEXA</h2>
         <div class="input-group" style="text-align: center;">
@@ -153,6 +160,13 @@
         </div>
     </div>
 
+    <!-- ЭКРАН 3: ЗАДАНИЯ -->
+    <div id="screen-tasks" class="screen">
+        <h2 style="color: #D4AF37; margin-bottom: 20px; text-shadow: 0 2px 4px #000;" data-lang="tasks_title">Задания</h2>
+        <div id="tasks-list"></div>
+    </div>
+
+    <!-- ЭКРАН 4: УРОВНИ -->
     <div id="screen-levels" class="screen">
         <h2 style="color: #D4AF37; margin-bottom: 10px; text-shadow: 0 2px 4px #000;" data-lang="levels_title">Уровни</h2>
         <div style="font-size: 12px; color: #ccc; margin-bottom: 15px; text-shadow: 0 1px 2px #000;" data-lang="levels_desc">Уровень зависит от холда NEXA на кошельке.</div>
@@ -164,6 +178,7 @@
         <div id="levels-list"></div>
     </div>
 
+    <!-- ЭКРАН 5: ВЫВОД -->
     <div id="screen-wallet" class="screen">
         <h2 style="color: #D4AF37; margin-bottom: 10px; text-shadow: 0 2px 4px #000;" data-lang="withdraw_title">Вывод средств</h2>
         <div style="font-size: 12px; color: #ccc; margin-bottom: 15px; text-shadow: 0 1px 2px #000;" data-lang="withdraw_desc">Для проверки холда привяжите кошелек TON.</div>
@@ -182,6 +197,7 @@
         <div id="history-list"></div>
     </div>
 
+    <!-- ЭКРАН 6: ДРУЗЬЯ -->
     <div id="screen-friends" class="screen">
         <h2 style="color: #D4AF37; margin-bottom: 20px; text-shadow: 0 2px 4px #000;" data-lang="friends_title">Друзья</h2>
         <div class="input-group">
@@ -190,12 +206,14 @@
         </div>
     </div>
 
+    <!-- ЭКРАН 7: АДМИНКА -->
     <div id="screen-admin" class="screen">
         <h2 style="color: #D4AF37; margin-bottom: 15px; text-shadow: 0 2px 4px #000;" data-lang="admin_title">Админ-панель</h2>
         <div class="admin-tabs">
             <div class="admin-tab active" onclick="switchAdminTab('withdrawals', this)" data-lang="tab_wds">Заявки</div>
             <div class="admin-tab" onclick="switchAdminTab('users', this)" data-lang="tab_users">Юзеры</div>
-            <div class="admin-tab" onclick="switchAdminTab('referrals', this)" data-lang="tab_refs">Рефералы</div>
+            <div class="admin-tab" onclick="switchAdminTab('refs', this)" data-lang="tab_refs">Рефералы</div>
+            <div class="admin-tab" onclick="switchAdminTab('tasks_admin', this)" data-lang="tab_tasks">Задания</div>
             <div class="admin-tab" onclick="switchAdminTab('history', this)" data-lang="tab_hist">История</div>
             <div class="admin-tab" onclick="switchAdminTab('settings', this)" data-lang="tab_bot">Бот</div>
         </div>
@@ -207,12 +225,23 @@
             </div>
             <div id="user-result"></div>
         </div>
-        <div id="admin-referrals" class="admin-section">
+        <div id="admin-refs" class="admin-section">
             <div class="input-group" style="padding: 10px;">
                 <input type="text" id="ref-search" placeholder="TG ID">
                 <button class="btn-blue" onclick="loadReferrals()" data-lang="search_btn">Найти</button>
             </div>
             <div id="referral-list"></div>
+        </div>
+        <div id="admin-tasks_admin" class="admin-section">
+            <div class="input-group" style="padding: 10px;">
+                <h3 style="font-size: 14px; margin-bottom: 10px; color: #D4AF37;">Добавить задание</h3>
+                <input type="text" id="t-title" placeholder="Название (Подписка на канал)">
+                <input type="text" id="t-url" placeholder="Ссылка (https://t.me/...)">
+                <input type="number" id="t-reward" placeholder="Награда (в NEXA)">
+                <button class="btn-gold" onclick="addTask()">Добавить</button>
+            </div>
+            <h3 style="font-size: 14px; margin-top: 20px; margin-bottom: 10px; color: #D4AF37;">Активные задания</h3>
+            <div id="admin-tasks-list"></div>
         </div>
         <div id="admin-history" class="admin-section">
             <div class="input-group" style="padding: 10px;">
@@ -235,9 +264,11 @@
         </div>
     </div>
 
+    <!-- НАВИГАЦИЯ -->
     <div class="bottom-nav">
         <div class="nav-item active" onclick="switchTab('mining', this)"><div class="nav-icon">⚒️</div><div data-lang="nav_mine">Майнинг</div></div>
         <div class="nav-item" onclick="switchTab('buy', this)"><div class="nav-icon">🪙</div><div data-lang="nav_buy">Обмен</div></div>
+        <div class="nav-item" onclick="switchTab('tasks', this)"><div class="nav-icon">📋</div><div data-lang="nav_tasks">Задания</div></div>
         <div class="nav-item" onclick="switchTab('levels', this)"><div class="nav-icon">📊</div><div data-lang="nav_lvl">Уровни</div></div>
         <div class="nav-item" onclick="switchTab('wallet', this)"><div class="nav-icon">💳</div><div data-lang="nav_wd">Вывод</div></div>
         <div class="nav-item" onclick="switchTab('friends', this)"><div class="nav-icon">👥</div><div data-lang="nav_fr">Друзья</div></div>
@@ -273,13 +304,15 @@
                 withdraw_addr: "Куда вывести NEXA? (Введите адрес)", withdraw_amt: "Сумма вывода (Мин. 50,000 NEXA)",
                 withdraw_hold: "* Для вывода нужно иметь 20% от суммы в токенах на кошельке.", withdraw_btn: "Запросить вывод",
                 history_title: "История выводов", friends_title: "Друзья", friends_desc: "Пригласи друга и получай 10% от его майнинга!", share_btn: "Поделиться",
-                admin_title: "Админ-панель", tab_wds: "Заявки", tab_users: "Юзеры", tab_refs: "Рефералы", tab_hist: "История", tab_bot: "Бот",
+                admin_title: "Админ-панель", tab_wds: "Заявки", tab_users: "Юзеры", tab_refs: "Рефералы", tab_tasks: "Задания", tab_hist: "История", tab_bot: "Бот",
                 search_btn: "Найти", maintenance: "Технические работы", base_income: "Базовая ставка (в сек)",
                 level_bonus: "Бонус за уровень (0.05 = +5%)", save_btn: "Сохранить настройки",
-                nav_mine: "Майнинг", nav_buy: "Обмен", nav_lvl: "Уровни", nav_wd: "Вывод", nav_fr: "Друзья", nav_adm: "Админ",
+                nav_mine: "Майнинг", nav_buy: "Обмен", nav_tasks: "Задания", nav_lvl: "Уровни", nav_wd: "Вывод", nav_fr: "Друзья", nav_adm: "Админ",
                 hold_req: "Холд:", inc_day: "NEXA/день:", mult: "Множ:",
                 no_txs: "Нет транзакций", reset_wallet: "Сбросить кошелек", ban: "Забанить", unban: "Разбанить",
-                make_admin: "Выдать админку", remove_admin: "Снять админку", reset_wallet_confirm: "Отвязать кошелек?"
+                make_admin: "Выдать админку", remove_admin: "Снять админку", reset_wallet_confirm: "Отвязать кошелек?",
+                tasks_title: "Задания", tasks_go: "Перейти", tasks_claim: "Забрать", tasks_done: "Выполнено", tasks_empty: "Нет доступных заданий",
+                admin_tasks_add: "Добавить задание", admin_tasks_active: "Активные задания", admin_tasks_delete: "Удалить"
             },
             en: {
                 banned_title: "You are banned", banned_desc: "Your account has been banned by the administration.",
@@ -293,13 +326,15 @@
                 withdraw_addr: "Where to withdraw NEXA? (Enter address)", withdraw_amt: "Withdraw Amount (Min. 50,000 NEXA)",
                 withdraw_hold: "* You need 20% of the amount in tokens on your wallet to withdraw.", withdraw_btn: "Request Withdrawal",
                 history_title: "Withdrawal History", friends_title: "Friends", friends_desc: "Invite a friend and get 10% of their mining!", share_btn: "Share",
-                admin_title: "Admin Panel", tab_wds: "Requests", tab_users: "Users", tab_refs: "Referrals", tab_hist: "History", tab_bot: "Bot",
+                admin_title: "Admin Panel", tab_wds: "Requests", tab_users: "Users", tab_refs: "Referrals", tab_tasks: "Tasks", tab_hist: "History", tab_bot: "Bot",
                 search_btn: "Search", maintenance: "Maintenance Mode", base_income: "Base Rate (per sec)",
                 level_bonus: "Level Bonus (0.05 = +5%)", save_btn: "Save Settings",
-                nav_mine: "Mining", nav_buy: "Exchange", nav_lvl: "Levels", nav_wd: "Withdraw", nav_fr: "Friends", nav_adm: "Admin",
+                nav_mine: "Mining", nav_buy: "Exchange", nav_tasks: "Tasks", nav_lvl: "Levels", nav_wd: "Withdraw", nav_fr: "Friends", nav_adm: "Admin",
                 hold_req: "Hold:", inc_day: "NEXA/day:", mult: "Mult:",
                 no_txs: "No txs", reset_wallet: "Reset Wallet", ban: "Ban", unban: "Unban",
-                make_admin: "Make Admin", remove_admin: "Remove Admin", reset_wallet_confirm: "Reset wallet?"
+                make_admin: "Make Admin", remove_admin: "Remove Admin", reset_wallet_confirm: "Reset wallet?",
+                tasks_title: "Tasks", tasks_go: "Go", tasks_claim: "Claim", tasks_done: "Completed", tasks_empty: "No tasks available",
+                admin_tasks_add: "Add Task", admin_tasks_active: "Active Tasks", admin_tasks_delete: "Delete"
             }
         };
 
@@ -309,9 +344,8 @@
             currentLang = currentLang === 'ru' ? 'en' : 'ru';
             localStorage.setItem('nexa_lang', currentLang);
             translateUI(); updateUI(); renderLevels();
-            if(document.getElementById('screen-admin').classList.contains('active')) {
-                loadAdminData();
-            }
+            if(document.getElementById('screen-tasks').classList.contains('active')) loadTasks();
+            if(document.getElementById('screen-admin').classList.contains('active')) loadAdminData();
         }
 
         function translateUI() {
@@ -338,6 +372,7 @@
             el.classList.add('active');
             if(tabId === 'wallet') loadHistory();
             if(tabId === 'levels') renderLevels();
+            if(tabId === 'tasks') loadTasks();
             if(tabId === 'admin') loadAdminData();
         }
 
@@ -348,7 +383,8 @@
             el.classList.add('active');
             if(tabId === 'settings') loadSettings();
             if(tabId === 'history') loadAllHistory();
-            if(tabId === 'referrals') loadReferrals();
+            if(tabId === 'refs') loadReferrals();
+            if(tabId === 'tasks_admin') loadAdminTasks();
         }
 
         function copyText(text) {
@@ -373,23 +409,12 @@
         async function loadData() {
             try {
                 let res = await fetch(API_URL + '/api/login', { method: 'POST', headers: HEADERS });
-                
                 if (res.status === 403) {
                     let err = await res.json();
-                    if (err.detail === "banned") {
-                        document.getElementById('overlay-banned').style.display = 'flex';
-                        return;
-                    }
-                    if (err.detail === "maintenance") {
-                        document.getElementById('overlay-maint').style.display = 'flex';
-                        return;
-                    }
+                    if (err.detail === "banned") return document.getElementById('overlay-banned').style.display = 'flex';
+                    if (err.detail === "maintenance") return document.getElementById('overlay-maint').style.display = 'flex';
                 }
-
-                if (!res.ok) {
-                    let err = await res.json();
-                    return tg.showAlert("Error: " + (err.detail || "Server error"));
-                }
+                if (!res.ok) return tg.showAlert("Error: " + (await res.json()).detail || "Server error");
                 userData = await res.json();
                 updateUI();
                 if (userData.is_admin) document.getElementById('admin-nav').style.display = 'flex';
@@ -435,50 +460,104 @@
             let html = '';
             let startLvl = (currentLevelPage - 1) * LEVELS_PER_PAGE + 1;
             let endLvl = currentLevelPage * LEVELS_PER_PAGE;
-            
             for (let lvl = startLvl; lvl <= endLvl; lvl++) {
                 let hold = (lvl - 1) * 50000;
                 let rate = userData.base_income * (1 + (lvl - 1) * userData.level_bonus);
                 let daily = rate * 86400;
                 let mult = 1 + (lvl - 1) * userData.level_bonus;
                 let isActive = (userData.level === lvl) ? 'active' : '';
-                
                 html += `<div class="lvl-row ${isActive}">
-                    <div class="lvl-col">
-                        <div class="lvl-title">${t('level_text')} ${lvl}</div>
-                        <div class="lvl-sub">${t('hold_req')} ${hold.toLocaleString()} NEXA</div>
-                    </div>
-                    <div class="lvl-col" style="text-align: right;">
-                        <div style="color: #2ecc71; font-weight: bold;">${daily.toFixed(2)} NEXA</div>
-                        <div class="lvl-sub" style="color:#3498db;">x${mult.toFixed(2)}</div>
-                    </div>
+                    <div class="lvl-col"><div class="lvl-title">${t('level_text')} ${lvl}</div><div class="lvl-sub">${t('hold_req')} ${hold.toLocaleString()} NEXA</div></div>
+                    <div class="lvl-col" style="text-align: right;"><div style="color: #2ecc71; font-weight: bold;">${daily.toFixed(2)} NEXA</div><div class="lvl-sub" style="color:#3498db;">x${mult.toFixed(2)}</div></div>
                 </div>`;
             }
-            
             document.getElementById('levels-list').innerHTML = html;
             document.getElementById('page-indicator').innerText = `${currentLevelPage} / ${TOTAL_PAGES}`;
         }
 
-        function buyToken() { tg.openLink(`https://app.ston.fi/swap?ft=TON&tt=${TOKEN_CONTRACT}`); }
+        // ================= ЗАДАНИЯ =================
+        async function loadTasks() {
+            let res = await fetch(API_URL + '/api/tasks', { headers: HEADERS });
+            let data = await res.json();
+            let html = '';
+            data.forEach(task => {
+                let actionHtml = '';
+                if (task.completed) {
+                    actionHtml = `<div class="task-btn-done">${t('tasks_done')}</div>`;
+                } else {
+                    actionHtml = `
+                        <a href="${task.url}" target="_blank" class="task-btn-go" style="text-decoration:none; display:flex; justify-content:center; align-items:center;">${t('tasks_go')}</a>
+                        <button class="task-btn-claim" onclick="claimTask(${task.id})">${t('tasks_claim')}</button>
+                    `;
+                }
+                html += `<div class="task-card">
+                    <div class="task-title">${task.title}</div>
+                    <div class="task-reward">+${task.reward} NEXA</div>
+                    <div class="task-btns">${actionHtml}</div>
+                </div>`;
+            });
+            document.getElementById('tasks-list').innerHTML = html || `<div style="color:#aaa; text-align:center;">${t('tasks_empty')}</div>`;
+        }
 
+        async function claimTask(id) {
+            let res = await fetch(API_URL + '/api/tasks/claim', { method: 'POST', headers: HEADERS, body: JSON.stringify({ task_id: id }) });
+            if (res.ok) {
+                tg.showAlert(currentLang === 'ru' ? "Награда получена!" : "Reward claimed!");
+                loadTasks(); loadData();
+            } else {
+                tg.showAlert((await res.json()).detail || "Error");
+            }
+        }
+
+        // ================= АДМИН: ЗАДАНИЯ =================
+        async function loadAdminTasks() {
+            let res = await fetch(API_URL + '/api/admin/tasks', { headers: HEADERS });
+            let data = await res.json();
+            let html = '';
+            data.forEach(task => {
+                html += `<div class="task-card">
+                    <div class="task-title">${task.title} (+${task.reward} NEXA)</div>
+                    <div style="font-size:12px; color:#aaa; word-break:break-all;">${task.url}</div>
+                    <button class="btn-red" style="margin-top:5px; padding:8px;" onclick="deleteTask(${task.id})">${t('admin_tasks_delete')}</button>
+                </div>`;
+            });
+            document.getElementById('admin-tasks-list').innerHTML = html || '<div style="color:#666;">Пусто</div>';
+        }
+
+        async function addTask() {
+            let title = document.getElementById('t-title').value.trim();
+            let url = document.getElementById('t-url').value.trim();
+            let reward = parseFloat(document.getElementById('t-reward').value);
+            if(!title || !url || !reward) return tg.showAlert("Заполните все поля");
+            await fetch(API_URL + '/api/admin/tasks/add', { method: 'POST', headers: HEADERS, body: JSON.stringify({ title, url, reward }) });
+            document.getElementById('t-title').value = '';
+            document.getElementById('t-url').value = '';
+            document.getElementById('t-reward').value = '';
+            loadAdminTasks();
+        }
+
+        async function deleteTask(id) {
+            if(!confirm('Удалить задание?')) return;
+            await fetch(API_URL + '/api/admin/tasks/delete', { method: 'POST', headers: HEADERS, body: JSON.stringify({ task_id: id }) });
+            loadAdminTasks();
+        }
+
+        // ================= ОСТАЛЬНОЕ =================
+        function buyToken() { tg.openLink(`https://app.ston.fi/swap?ft=TON&tt=${TOKEN_CONTRACT}`); }
         async function handleFarm() {
             let ep = userData.is_farming ? '/api/claim' : '/api/start_farm';
             try {
                 let res = await fetch(API_URL + ep, { method: 'POST', headers: HEADERS });
-                if(!res.ok) {
-                    let e = await res.json();
-                    tg.showAlert(e.detail || "Error");
-                } else { await loadData(); }
+                if(!res.ok) { let e = await res.json(); tg.showAlert(e.detail || "Error"); } 
+                else { await loadData(); }
             } catch(e) { tg.showAlert("Network Error"); }
         }
 
         async function requestWithdraw() {
             let amt = parseFloat(document.getElementById('w-amount').value);
             let wWallet = document.getElementById('withdraw-wallet').value.trim();
-            
             if(isNaN(amt) || amt < 50000) return tg.showAlert(currentLang === 'ru' ? "Минимум 50 000 NEXA" : "Min 50 000 NEXA");
             if(!wWallet) return tg.showAlert(currentLang === 'ru' ? "Введите адрес!" : "Enter address!");
-            
             try {
                 let res = await fetch(API_URL + '/api/withdraw', { method: 'POST', headers: HEADERS, body: JSON.stringify({ amount: amt, withdraw_wallet: wWallet }) });
                 let data = await res.json();
@@ -505,7 +584,6 @@
             tg.openTelegramLink(`https://t.me/share/url?url=${refLink}&text=${encodeURIComponent(txt)}`);
         }
 
-        // ================= АДМИНКА =================
         async function loadAdminData() { loadWithdrawals(); }
 
         async function loadWithdrawals() {
@@ -513,7 +591,6 @@
             let data = await res.json();
             let html = '';
             let txPlaceholder = currentLang === 'ru' ? 'Ссылка на транзакцию...' : 'Transaction link...';
-            
             data.forEach(w => {
                 html += `<div class="user-card">
                     <div class="user-info-row" onclick="copyText('${w.user_id}')" style="cursor:pointer;" title="Копировать ID">
@@ -524,9 +601,7 @@
                         <span style="color:#D4AF37;">Dest Wallet (нажми):</span>
                         <span style="color:#D4AF37; font-size:11px; text-decoration:underline;">${w.wallet}</span>
                     </div>
-                    
                     <input type="text" id="tx-${w.id}" placeholder="${txPlaceholder}" style="width:100%; background:#111; border:1px solid #333; color:white; padding:8px; border-radius:5px; margin-top:10px; font-size:12px;">
-                    
                     <div style="margin-top: 10px; display:flex; gap: 10px;">
                         <button class="btn-gold" onclick="adminAction(${w.id}, 'approve')">✅ Pay</button>
                         <button class="btn-red" onclick="adminAction(${w.id}, 'reject')">❌ Reject</button>
@@ -546,8 +621,7 @@
                     <div onclick="copyText('${r.referrer_id}')" style="color:#D4AF37; font-weight:bold; margin-bottom:5px; cursor:pointer; text-decoration:underline;">Пригласил (ID): ${r.referrer_id}</div>
                     <div onclick="copyText('${r.referred_id}')" style="font-size:11px; color:#fff; margin-bottom:2px; cursor:pointer; text-decoration:underline;">Привел юзера (ID): ${r.referred_id}</div>
                     <div style="display:flex; justify-content:space-between; width:100%; font-size:10px; color:#aaa; margin-top:5px;">
-                        <span>${r.date}</span>
-                        <span style="color:#2ecc71; font-weight:bold;">+${r.amount.toFixed(2)} NEXA</span>
+                        <span>${r.date}</span><span style="color:#2ecc71; font-weight:bold;">+${r.amount.toFixed(2)} NEXA</span>
                     </div>
                 </div>`;
             });
@@ -566,8 +640,7 @@
                     <div onclick="copyText('${w.user_id}')" style="color:#D4AF37; font-weight:bold; margin-bottom:5px; cursor:pointer; text-decoration:underline;">ID: ${w.user_id}</div>
                     <div onclick="copyText('${w.wallet}')" style="font-size:10px; color:#aaa; margin-bottom:5px; cursor:pointer; text-decoration:underline;" title="Copy">${w.date} | Address: ${w.wallet}</div>
                     <div style="display:flex; justify-content:space-between; width:100%;">
-                        <span>${w.amount} NEXA</span>
-                        <span style="color:${stColor}; font-weight:bold;">${st}</span>
+                        <span>${w.amount} NEXA</span><span style="color:${stColor}; font-weight:bold;">${st}</span>
                     </div>
                 </div>`;
             });
@@ -578,21 +651,10 @@
             let txHash = "";
             if (act === "approve") {
                 txHash = document.getElementById(`tx-${id}`).value.trim();
-                if (!txHash) {
-                    return tg.showAlert(currentLang === 'ru' ? "Вставьте ссылку на транзакцию перед одобрением!" : "Paste transaction link before approving!");
-                }
+                if (!txHash) return tg.showAlert(currentLang === 'ru' ? "Вставьте ссылку на транзакцию перед одобрением!" : "Paste transaction link before approving!");
             }
-            
-            let res = await fetch(API_URL + '/api/admin/action', { 
-                method: 'POST', 
-                headers: HEADERS, 
-                body: JSON.stringify({ wd_id: id, action: act, tx_hash: txHash }) 
-            });
-            
-            if (!res.ok) {
-                let e = await res.json();
-                return tg.showAlert(e.detail || "Error");
-            }
+            let res = await fetch(API_URL + '/api/admin/action', { method: 'POST', headers: HEADERS, body: JSON.stringify({ wd_id: id, action: act, tx_hash: txHash }) });
+            if (!res.ok) return tg.showAlert((await res.json()).detail || "Error");
             loadWithdrawals();
         }
 
@@ -602,12 +664,7 @@
             let res = await fetch(API_URL + `/api/admin/search_user?query=${q}`, { headers: HEADERS });
             let data = await res.json();
             if(!data.found) return document.getElementById('user-result').innerHTML = '<div style="color:#e74c3c; text-align:center;">Not found</div>';
-            
             let txsHtml = data.txs.map(t => `<div class="tx-item">${t.time}: ${t.text}</div>`).join('') || `<div class="tx-item">${t('no_txs')}</div>`;
-            
-            let banBtn = data.is_banned ? t('unban') : t('ban');
-            let admBtn = data.is_admin ? t('remove_admin') : t('make_admin');
-            
             let html = `<div class="user-card">
                 <div class="user-info-row" onclick="copyText('${data.id}')" style="cursor:pointer;" title="Copy ID">
                     <span>TG ID (нажми):</span><span style="text-decoration:underline;">${data.id}</span>
@@ -636,8 +693,8 @@
                     <button class="btn-red" style="margin:0;" onclick="editBalance(${data.id}, false)">-</button>
                 </div>
                 <div style="display:flex; gap:5px; margin-top: 10px;">
-                    <button class="btn-red" onclick="toggleBan(${data.id})">${banBtn}</button>
-                    <button class="btn-blue" onclick="toggleAdmin(${data.id}, ${!data.is_admin})">${admBtn}</button>
+                    <button class="btn-red" onclick="toggleBan(${data.id})">${data.is_banned ? 'Unban' : 'Ban'}</button>
+                    <button class="btn-blue" onclick="toggleAdmin(${data.id}, ${!data.is_admin})">${data.is_admin ? 'Remove Admin' : 'Make Admin'}</button>
                 </div>
                 <div style="display:flex; gap:5px; margin-top: 10px;">
                     <button class="btn-red" style="background:#e67e22; box-shadow:none;" onclick="resetWallet(${data.id})">${t('reset_wallet')}</button>
