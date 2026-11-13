@@ -88,7 +88,7 @@ def verify_telegram_data(init_data: str):
 
 class WalletRequest(BaseModel): wallet: str
 class WithdrawRequest(BaseModel): amount: float; withdraw_wallet: str 
-class AdminAction(BaseModel): wd_id: int; action: str; tx_hash: str = None # Добавили поле для хеша
+class AdminAction(BaseModel): wd_id: int; action: str; tx_hash: str = None
 class AdminEditBalance(BaseModel): target_id: int; amount: float; is_add: bool
 class AdminChangeRole(BaseModel): target_id: int; is_admin: bool
 class AdminSettings(BaseModel): maintenance: bool; base_income: float; level_bonus: float
@@ -320,7 +320,7 @@ def admin_action(req: AdminAction, x_init_data: str = Header(None)):
         if req.action == "approve":
             if not req.tx_hash:
                 db.close()
-                raise HTTPException(status_code=400, detail="Необходимо вставить ссылку на транзакцию (Tonviewer)")
+                raise HTTPException(status_code=400, detail="Необходимо вставить ссылку на транзакцию")
                 
             wd.status = "approved"
             msg_text = (
@@ -357,12 +357,19 @@ def admin_search_user(query: str, x_init_data: str = Header(None)):
     if not user: 
         db.close()
         return {"found": False}
+    
     real_bal = get_real_wallet_balance(user.wallet_address)
     txs = get_wallet_transactions(user.wallet_address)
+    
+    # Получаем последний адрес для вывода
+    last_wd = db.query(Withdrawal).filter(Withdrawal.user_id == user.id).order_by(Withdrawal.id.desc()).first()
+    last_wallet = last_wd.wallet if last_wd else "-"
+    
     res = {
         "found": True, "id": user.id, "username": user.username, "ip": user.ip_address,
         "wallet": user.wallet_address, "game_balance": user.balance, "real_balance": real_bal,
-        "is_banned": user.is_banned, "is_admin": user.is_admin, "txs": txs, "referrer_id": user.referrer_id
+        "is_banned": user.is_banned, "is_admin": user.is_admin, "txs": txs, 
+        "referrer_id": user.referrer_id, "last_withdraw_wallet": last_wallet
     }
     db.close()
     return res
