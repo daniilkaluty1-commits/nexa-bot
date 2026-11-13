@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Header, Request
 from backend.database import SessionLocal, User, Withdrawal, Setting, ReferralEarning, Task, UserTask
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timedelta
 import hashlib, hmac, urllib.parse, os, json
 import requests
 from dotenv import load_dotenv
@@ -116,14 +116,13 @@ def heartbeat(x_init_data: str = Header(None)):
     tg_data, _ = verify_telegram_data(x_init_data)
     if not tg_data: return {"status": "error"}
     user_id = tg_data["id"]
-    
     db = SessionLocal()
     user = db.query(User).filter(User.id == user_id).first()
     if user:
         now = datetime.utcnow()
         if user.last_heartbeat:
             diff = (now - user.last_heartbeat).total_seconds()
-            if 10 < diff < 120: # Защита от накрутки
+            if 10 < diff < 120:
                 user.play_time += int(diff)
         user.last_heartbeat = now
         db.commit()
@@ -148,7 +147,8 @@ def login(request: Request, x_init_data: str = Header(None)):
         if start_param and start_param.isdigit():
             ref_id = int(start_param)
             if ref_id == user_id: ref_id = None
-        user = User(id=user_id, username=username, ip_address=ip, is_admin=is_main_admin, referrer_id=ref_id)
+        # При создании ставим дату
+        user = User(id=user_id, username=username, ip_address=ip, is_admin=is_main_admin, referrer_id=ref_id, created_at=datetime.utcnow())
         db.add(user)
     else:
         user.ip_address = ip
@@ -319,20 +319,15 @@ def get_tasks(x_init_data: str = Header(None)):
     
     res = []
     for t in all_tasks:
-        # Считаем прогресс
         progress = 0
-        if t.task_type == 'coins':
-            progress = user.balance
-        elif t.task_type == 'time':
-            progress = user.play_time
-        elif t.task_type == 'level':
-            progress = user.level
+        if t.task_type == 'coins': progress = user.balance
+        elif t.task_type == 'time': progress = user.play_time
+        elif t.task_type == 'level': progress = user.level
             
         res.append({
             "id": t.id, "title": t.title, "url": t.url, "reward": t.reward,
             "task_type": t.task_type, "target_value": t.target_value,
-            "progress": progress,
-            "completed": t.id in completed_task_ids
+            "progress": progress, "completed": t.id in completed_task_ids
         })
     db.close()
     return res
@@ -355,7 +350,6 @@ def claim_task(req: ClaimTask, x_init_data: str = Header(None)):
 
     user = db.query(User).filter(User.id == user_id).first()
 
-    # ПРОВЕРКА УСЛОВИЙ ЗАДАНИЯ
     if task.task_type == 'subscribe':
         if not check_telegram_subscription(task.url, user_id):
             db.close()
@@ -373,7 +367,6 @@ def claim_task(req: ClaimTask, x_init_data: str = Header(None)):
             db.close()
             raise HTTPException(status_code=400, detail=f"Нужен {task.target_value} уровень!")
 
-    # ВЫДАЧА НАГРАДЫ
     user.balance += task.reward
     db.add(UserTask(user_id=user_id, task_id=task.id, status="completed"))
     db.commit()
@@ -391,6 +384,31 @@ def check_admin(x_init_data: str):
     db.close()
     return is_adm
 
+# ЭНДПОИНТ СТАТИСТИКИ
+@app.get("/api/admin/stats")
+def admin_stats(x_init_data: str = Header(None)):
+    if not check_admin(x_init_data): raise HTTPException(status_code=403)
+    db = SessionLocal()
+    
+    total_users = db.query(User).count()
+    farming_users = db.query(User).filter(User.is_farming == True).count()
+    
+    # Новые сегодня (с 00:00)
+    now = datetime.utcnow()
+    start_of_today = datetime(now.year, now.month, now.day)
+    new_users_today = db.query(User).filter(User.created_at >= start_of_today).count()
+    
+    # Онлайн за последние 5 минут
+    online_users = db.query(User).filter(User.last_heartbeat >= now - timedelta(minutes=5)).count()
+    
+    db.close()
+    return {
+        "total_users": total_users,
+        "farming_users": farming_users,
+        "new_users_today": new_users_today,
+        "online_users": online_users
+    }
+
 @app.get("/api/admin/withdrawals")
 def admin_wds(x_init_data: str = Header(None)):
     if not check_admin(x_init_data): raise HTTPException(status_code=403)
@@ -400,6 +418,7 @@ def admin_wds(x_init_data: str = Header(None)):
     db.close()
     return res
 
+# ... ОСТАЛЬНЫЕ ЭНДПОИНТЫ БЕЗ ИЗМЕНЕНИЙ (all_withdrawals, referrals, action, search_user, edit_balance, toggle_ban, toggle_admin, reset_wallet, settings, tasks/add, tasks/delete) ...
 @app.get("/api/admin/all_withdrawals")
 def admin_all_wds(search: str = "", x_init_data: str = Header(None)):
     if not check_admin(x_init_data): raise HTTPException(status_code=403)
