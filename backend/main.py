@@ -24,6 +24,21 @@ def send_telegram_message(chat_id: int, text: str):
         requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", json={"chat_id": chat_id, "text": text, "parse_mode": "HTML"}, timeout=5)
     except: pass
 
+def check_telegram_subscription(chat_id: str, user_id: int) -> bool:
+    """Проверяет, подписан ли юзер на канал/чат"""
+    if not chat_id: return True # Если ID канала нет, пропускаем проверку
+    try:
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/getChatMember"
+        res = requests.get(url, params={"chat_id": chat_id, "user_id": user_id}, timeout=5)
+        data = res.json()
+        if data.get("ok"):
+            status = data["result"]["status"]
+            # creator, administrator, member - это подписан
+            # left, kicked - не подписан
+            return status in ["creator", "administrator", "member"]
+    except: pass
+    return False
+
 def get_token_price():
     now = datetime.utcnow().timestamp()
     if now - price_cache["last_update"] < 15: return price_cache["price"]
@@ -85,8 +100,7 @@ class AdminEditBalance(BaseModel): target_id: int; amount: float; is_add: bool
 class AdminChangeRole(BaseModel): target_id: int; is_admin: bool
 class AdminSettings(BaseModel): maintenance: bool; base_income: float; level_bonus: float
 class AdminResetWallet(BaseModel): target_id: int
-# Новые модели для заданий
-class AdminAddTask(BaseModel): title: str; url: str; reward: float
+class AdminAddTask(BaseModel): title: str; url: str; chat_id: str; reward: float
 class AdminDelTask(BaseModel): task_id: int
 class ClaimTask(BaseModel): task_id: int
 
@@ -147,8 +161,6 @@ def login(request: Request, x_init_data: str = Header(None)):
     }
     db.close()
     return res
-
-# ... (Эндпоинты start_farm, claim, set_wallet, unlink_wallet, withdraw, history ОСТАЮТСЯ БЕЗ ИЗМЕНЕНИЙ) ...
 
 @app.post("/api/start_farm")
 def start_farm(x_init_data: str = Header(None)):
@@ -287,7 +299,14 @@ def claim_task(req: ClaimTask, x_init_data: str = Header(None)):
     if already_done:
         db.close()
         raise HTTPException(status_code=400, detail="Вы уже выполнили это задание")
-        
+    
+    # ПРОВЕРКА ПОДПИСКИ
+    if task.chat_id:
+        is_subbed = check_telegram_subscription(task.chat_id, user_id)
+        if not is_subbed:
+            db.close()
+            raise HTTPException(status_code=400, detail="Вы не подписались на канал/группу!")
+
     user = db.query(User).filter(User.id == user_id).first()
     user.balance += task.reward
     
@@ -452,14 +471,12 @@ def admin_set_settings(req: AdminSettings, x_init_data: str = Header(None)):
     db.close()
     return {"status": "ok"}
 
-# ================= УПРАВЛЕНИЕ ЗАДАНИЯМИ (АДМИН) =================
-
 @app.get("/api/admin/tasks")
 def admin_get_tasks(x_init_data: str = Header(None)):
     if not check_admin(x_init_data): raise HTTPException(status_code=403)
     db = SessionLocal()
     tasks = db.query(Task).all()
-    res = [{"id": t.id, "title": t.title, "url": t.url, "reward": t.reward} for t in tasks]
+    res = [{"id": t.id, "title": t.title, "url": t.url, "chat_id": t.chat_id, "reward": t.reward} for t in tasks]
     db.close()
     return res
 
@@ -467,7 +484,7 @@ def admin_get_tasks(x_init_data: str = Header(None)):
 def admin_add_task(req: AdminAddTask, x_init_data: str = Header(None)):
     if not check_admin(x_init_data): raise HTTPException(status_code=403)
     db = SessionLocal()
-    t = Task(title=req.title, url=req.url, reward=req.reward)
+    t = Task(title=req.title, url=req.url, chat_id=req.chat_id, reward=req.reward)
     db.add(t)
     db.commit()
     db.close()
