@@ -49,27 +49,33 @@ class ReferralEarning(Base):
     amount = Column(Float)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
-# НОВЫЕ ТАБЛИЦЫ ДЛЯ ЗАДАНИЙ
 class Task(Base):
     __tablename__ = "tasks"
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String)      # Например: "Подписаться на канал"
-    url = Column(String)        # Ссылка
-    reward = Column(Float)      # Награда в NEXA
+    title = Column(String)
+    url = Column(String)
+    chat_id = Column(String, nullable=True) # НОВОЕ ПОЛЕ: @channel или -100...
+    reward = Column(Float)
 
 class UserTask(Base):
     __tablename__ = "user_tasks"
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer)
     task_id = Column(Integer)
-    status = Column(String, default="completed") # Выполнено
+    status = Column(String, default="completed")
 
 Base.metadata.create_all(bind=engine)
 
-# === БЕЗОПАСНАЯ МИГРАЦИЯ ===
+# Миграция
 try:
     with engine.begin() as conn:
         conn.execute(text("ALTER TABLE users ADD COLUMN referrer_id INTEGER"))
+except OperationalError:
+    pass
+
+try:
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE tasks ADD COLUMN chat_id VARCHAR"))
 except OperationalError:
     pass
 
