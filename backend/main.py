@@ -19,6 +19,16 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=False,
 price_cache = {"price": 0.0, "last_update": 0}
 balance_cache = {}
 
+def send_telegram_message(chat_id: int, text: str):
+    try:
+        requests.post(
+            f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
+            json={"chat_id": chat_id, "text": text, "parse_mode": "HTML"},
+            timeout=5
+        )
+    except Exception as e:
+        print(f"Telegram send error: {e}")
+
 def get_token_price():
     now = datetime.utcnow().timestamp()
     if now - price_cache["last_update"] < 15: 
@@ -66,7 +76,7 @@ def get_wallet_transactions(wallet):
 def verify_telegram_data(init_data: str):
     try:
         parsed_data = dict(urllib.parse.parse_qsl(init_data))
-        if "hash" not in parsed_data: return None
+        if "hash" not in parsed_data: return None, None
         hash_str = parsed_data.pop("hash")
         data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(parsed_data.items()))
         secret_key = hmac.new(b"WebAppData", BOT_TOKEN.encode(), hashlib.sha256).digest()
@@ -78,7 +88,7 @@ def verify_telegram_data(init_data: str):
 
 class WalletRequest(BaseModel): wallet: str
 class WithdrawRequest(BaseModel): amount: float; withdraw_wallet: str 
-class AdminAction(BaseModel): wd_id: int; action: str
+class AdminAction(BaseModel): wd_id: int; action: str; tx_hash: str = None # Добавили поле для хеша
 class AdminEditBalance(BaseModel): target_id: int; amount: float; is_add: bool
 class AdminChangeRole(BaseModel): target_id: int; is_admin: bool
 class AdminSettings(BaseModel): maintenance: bool; base_income: float; level_bonus: float
@@ -98,12 +108,10 @@ def login(request: Request, x_init_data: str = Header(None)):
     is_main_admin = str(user_id) == str(ADMIN_ID)
 
     if not user:
-        # Обработка реферальной ссылки при первом входе
         ref_id = None
         if start_param and start_param.isdigit():
             ref_id = int(start_param)
-            if ref_id == user_id: ref_id = None # Нельзя пригласить себя
-            
+            if ref_id == user_id: ref_id = None
         user = User(id=user_id, username=username, ip_address=ip, is_admin=is_main_admin, referrer_id=ref_id)
         db.add(user)
     else:
@@ -111,13 +119,11 @@ def login(request: Request, x_init_data: str = Header(None)):
         if username: user.username = username
         if is_main_admin: user.is_admin = True
     
-    # БЛОКИРОВКА (выдаст 403, фронт перехватит)
     if user.is_banned: 
         db.close()
         raise HTTPException(status_code=403, detail="banned")
     
     settings = db.query(Setting).first()
-    # ТЕХ РАБОТЫ (кроме админа)
     if settings.maintenance and not user.is_admin:
         db.close()
         raise HTTPException(status_code=403, detail="maintenance")
@@ -180,7 +186,6 @@ def claim(x_init_data: str = Header(None)):
         earned = elapsed * settings.base_income * multiplier
         user.balance += earned
         
-        # НАЧИСЛЕНИЕ РЕФЕРАЛУ (10% от нафармленного)
         if user.referrer_id:
             ref_earn = earned * 0.10
             referrer = db.query(User).filter(User.id == user.referrer_id).first()
@@ -310,12 +315,36 @@ def admin_action(req: AdminAction, x_init_data: str = Header(None)):
     if not check_admin(x_init_data): raise HTTPException(status_code=403)
     db = SessionLocal()
     wd = db.query(Withdrawal).filter(Withdrawal.id == req.wd_id).first()
+    
     if wd:
-        if req.action == "approve": wd.status = "approved"
+        if req.action == "approve":
+            if not req.tx_hash:
+                db.close()
+                raise HTTPException(status_code=400, detail="Необходимо вставить ссылку на транзакцию (Tonviewer)")
+                
+            wd.status = "approved"
+            msg_text = (
+                f"✅ <b>Вывод NEXA выполнен.</b>\n\n"
+                f"Сумма: <b>{wd.amount} NEXA</b>\n"
+                f"Адрес: <code>{wd.wallet}</code>\n"
+                f"Проверка: {req.tx_hash}"
+            )
+            send_telegram_message(wd.user_id, msg_text)
+            
         else:
             wd.status = "rejected"
             usr = db.query(User).filter(User.id == wd.user_id).first()
-            if usr: usr.balance += wd.amount
+            if usr: 
+                usr.balance += wd.amount
+                
+            msg_text = (
+                f"❌ <b>Вывод NEXA отклонен.</b>\n\n"
+                f"Сумма: <b>{wd.amount} NEXA</b>\n"
+                f"Адрес: <code>{wd.wallet}</code>\n"
+                f"Средства возвращены на ваш игровой баланс."
+            )
+            send_telegram_message(wd.user_id, msg_text)
+            
         db.commit()
     db.close()
     return {"status": "ok"}
