@@ -24,39 +24,30 @@ def send_telegram_message(chat_id: int, text: str):
         requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", json={"chat_id": chat_id, "text": text, "parse_mode": "HTML"}, timeout=5)
     except: pass
 
-# ОБНОВЛЕННАЯ ФУНКЦИЯ ПРОВЕРКИ ПОДПИСКИ
 def check_telegram_subscription(url: str, user_id: int) -> bool:
-    if not url: return True # Если ссылки нет, пропускаем
+    if not url: return True
     
     chat_id = None
-    # Пытаемся вытащить юзернейм из ссылки
     if "t.me/" in url:
         part = url.split("t.me/")[-1].split("/")[0].split("?")[0]
         if part.startswith("+"):
-            # Это приватная ссылка-приглашение, проверить нельзя
-            print("Private invite link detected, skipping check.")
             return True 
         chat_id = "@" + part
     elif url.startswith("@"):
         chat_id = url
-    elif url.startswith("https://t.me/"): # Другой формат
+    elif url.startswith("https://t.me/"):
         part = url.split("/")[-1].split("?")[0]
         chat_id = "@" + part
 
-    if not chat_id:
-        return True # Не смогли распознать, пропускаем
+    if not chat_id: return True
 
     try:
         api_url = f"https://api.telegram.org/bot{BOT_TOKEN}/getChatMember"
         res = requests.get(api_url, params={"chat_id": chat_id, "user_id": user_id}, timeout=5)
         data = res.json()
         if data.get("ok"):
-            status = data["result"]["status"]
-            return status in ["creator", "administrator", "member"]
-        else:
-            print(f"DEBUG TG API: {data}")
-    except Exception as e:
-        print(f"DEBUG TG API Error: {e}")
+            return data["result"]["status"] in ["creator", "administrator", "member"]
+    except: pass
     return False
 
 def get_token_price():
@@ -120,11 +111,9 @@ class AdminEditBalance(BaseModel): target_id: int; amount: float; is_add: bool
 class AdminChangeRole(BaseModel): target_id: int; is_admin: bool
 class AdminSettings(BaseModel): maintenance: bool; base_income: float; level_bonus: float
 class AdminResetWallet(BaseModel): target_id: int
-class AdminAddTask(BaseModel): title: str; url: str; reward: float # Убрали chat_id
+class AdminAddTask(BaseModel): title: str; url: str; reward: float
 class AdminDelTask(BaseModel): task_id: int
 class ClaimTask(BaseModel): task_id: int
-
-# ... (Эндпоинты login, start_farm, claim, set_wallet, unlink_wallet, withdraw, history остаются БЕЗ ИЗМЕНЕНИЙ) ...
 
 @app.post("/api/login")
 def login(request: Request, x_init_data: str = Header(None)):
@@ -255,13 +244,30 @@ def unlink_wallet(x_init_data: str = Header(None)):
 def withdraw(req: WithdrawRequest, x_init_data: str = Header(None)):
     tg_data, _ = verify_telegram_data(x_init_data)
     user_id = tg_data["id"]
-    if req.amount < 50000: raise HTTPException(status_code=400, detail="Мин. 50 000")
-    if not req.withdraw_wallet: raise HTTPException(status_code=400, detail="Введите адрес")
+    if req.amount < 50000: raise HTTPException(status_code=400, detail="Мин. 50 000 NEXA")
+    if not req.withdraw_wallet: raise HTTPException(status_code=400, detail="Введите адрес кошелька")
+    
     db = SessionLocal()
     user = db.query(User).filter(User.id == user_id).first()
+    
+    # ЛИМИТ 48 ЧАСОВ
+    last_wd = db.query(Withdrawal).filter(
+        Withdrawal.user_id == user_id, 
+        Withdrawal.status.in_(["pending", "approved"])
+    ).order_by(Withdrawal.created_at.desc()).first()
+    
+    if last_wd:
+        diff = datetime.utcnow() - last_wd.created_at
+        hours_passed = diff.total_seconds() / 3600.0
+        if hours_passed < 48.0:
+            remaining_hours = 48.0 - hours_passed
+            db.close()
+            raise HTTPException(status_code=400, detail=f"Лимит: 1 вывод в 48 часов. Осталось: {remaining_hours:.1f} ч.")
+
     if not user.wallet_address: 
         db.close()
         raise HTTPException(status_code=400, detail="Кошелек не привязан")
+
     real_balance = get_real_wallet_balance(user.wallet_address)
     required_hold = req.amount * 0.2
     if real_balance < required_hold:
@@ -269,7 +275,8 @@ def withdraw(req: WithdrawRequest, x_init_data: str = Header(None)):
         raise HTTPException(status_code=400, detail=f"Нужен холд {required_hold:.0f} NEXA")
     if user.balance < req.amount: 
         db.close()
-        raise HTTPException(status_code=400, detail="Мало средств")
+        raise HTTPException(status_code=400, detail="Мало игровых средств")
+        
     user.balance -= req.amount
     db.add(Withdrawal(user_id=user.id, amount=req.amount, wallet=req.withdraw_wallet))
     db.commit()
@@ -293,9 +300,7 @@ def get_tasks(x_init_data: str = Header(None)):
     db = SessionLocal()
     all_tasks = db.query(Task).all()
     completed_task_ids = [ut.task_id for ut in db.query(UserTask).filter(UserTask.user_id == user_id).all()]
-    res = []
-    for t in all_tasks:
-        res.append({"id": t.id, "title": t.title, "url": t.url, "reward": t.reward, "completed": t.id in completed_task_ids})
+    res = [{"id": t.id, "title": t.title, "url": t.url, "reward": t.reward, "completed": t.id in completed_task_ids} for t in all_tasks]
     db.close()
     return res
 
@@ -315,7 +320,6 @@ def claim_task(req: ClaimTask, x_init_data: str = Header(None)):
         db.close()
         raise HTTPException(status_code=400, detail="Вы уже выполнили это задание")
     
-    # ПРОВЕРКА ПОДПИСКИ ПО ССЫЛКЕ
     is_subbed = check_telegram_subscription(task.url, user_id)
     if not is_subbed:
         db.close()
@@ -497,7 +501,7 @@ def admin_get_tasks(x_init_data: str = Header(None)):
 def admin_add_task(req: AdminAddTask, x_init_data: str = Header(None)):
     if not check_admin(x_init_data): raise HTTPException(status_code=403)
     db = SessionLocal()
-    t = Task(title=req.title, url=req.url, chat_id="", reward=req.reward) # chat_id пустой
+    t = Task(title=req.title, url=req.url, chat_id="", reward=req.reward)
     db.add(t)
     db.commit()
     db.close()
