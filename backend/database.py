@@ -26,7 +26,7 @@ class User(Base):
     referrer_id = Column(Integer, nullable=True)
     play_time = Column(Integer, default=0)
     last_heartbeat = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow) # НОВОЕ ПОЛЕ
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
     
 class Withdrawal(Base):
     __tablename__ = "withdrawals"
@@ -71,7 +71,7 @@ class UserTask(Base):
 
 Base.metadata.create_all(bind=engine)
 
-# Безопасная миграция базы
+# Безопасная миграция базы (добавляет колонки, если их нет)
 try:
     with engine.begin() as conn:
         conn.execute(text("ALTER TABLE users ADD COLUMN referrer_id INTEGER"))
