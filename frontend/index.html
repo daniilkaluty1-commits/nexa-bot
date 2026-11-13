@@ -95,7 +95,6 @@
         .user-info-row span:last-child { font-weight: bold; word-break: break-all; max-width: 60%; text-align: right;}
         .tx-item { font-size: 10px; color: #aaa; margin-top: 5px; border-top: 1px dashed #333; padding-top: 5px; }
 
-        /* Стили заданий */
         .task-card { background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 15px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; backdrop-filter: blur(5px); }
         .task-title { font-weight: 800; color: #D4AF37; font-size: 14px; }
         .task-reward { font-size: 12px; color: #2ecc71; font-weight: bold; }
@@ -120,7 +119,6 @@
         <p data-lang="maint_desc">Мы обновляем ферму. Пожалуйста, зайдите чуть позже.</p>
     </div>
 
-    <!-- ЭКРАН 1: МАЙНИНГ -->
     <div id="screen-mining" class="screen active">
         <div class="top-bar">
             <div class="top-left">
@@ -147,7 +145,6 @@
         </div>
     </div>
 
-    <!-- ЭКРАН 2: ОБМЕН -->
     <div id="screen-buy" class="screen">
         <h2 style="color: #D4AF37; margin-bottom: 20px; text-shadow: 0 2px 4px #000;" data-lang="buy_title">Купить NEXA</h2>
         <div class="input-group" style="text-align: center;">
@@ -160,13 +157,11 @@
         </div>
     </div>
 
-    <!-- ЭКРАН 3: ЗАДАНИЯ -->
     <div id="screen-tasks" class="screen">
         <h2 style="color: #D4AF37; margin-bottom: 20px; text-shadow: 0 2px 4px #000;" data-lang="tasks_title">Задания</h2>
         <div id="tasks-list"></div>
     </div>
 
-    <!-- ЭКРАН 4: УРОВНИ -->
     <div id="screen-levels" class="screen">
         <h2 style="color: #D4AF37; margin-bottom: 10px; text-shadow: 0 2px 4px #000;" data-lang="levels_title">Уровни</h2>
         <div style="font-size: 12px; color: #ccc; margin-bottom: 15px; text-shadow: 0 1px 2px #000;" data-lang="levels_desc">Уровень зависит от холда NEXA на кошельке.</div>
@@ -178,7 +173,6 @@
         <div id="levels-list"></div>
     </div>
 
-    <!-- ЭКРАН 5: ВЫВОД -->
     <div id="screen-wallet" class="screen">
         <h2 style="color: #D4AF37; margin-bottom: 10px; text-shadow: 0 2px 4px #000;" data-lang="withdraw_title">Вывод средств</h2>
         <div style="font-size: 12px; color: #ccc; margin-bottom: 15px; text-shadow: 0 1px 2px #000;" data-lang="withdraw_desc">Для проверки холда привяжите кошелек TON.</div>
@@ -197,7 +191,6 @@
         <div id="history-list"></div>
     </div>
 
-    <!-- ЭКРАН 6: ДРУЗЬЯ -->
     <div id="screen-friends" class="screen">
         <h2 style="color: #D4AF37; margin-bottom: 20px; text-shadow: 0 2px 4px #000;" data-lang="friends_title">Друзья</h2>
         <div class="input-group">
@@ -206,7 +199,6 @@
         </div>
     </div>
 
-    <!-- ЭКРАН 7: АДМИНКА -->
     <div id="screen-admin" class="screen">
         <h2 style="color: #D4AF37; margin-bottom: 15px; text-shadow: 0 2px 4px #000;" data-lang="admin_title">Админ-панель</h2>
         <div class="admin-tabs">
@@ -237,6 +229,8 @@
                 <h3 style="font-size: 14px; margin-bottom: 10px; color: #D4AF37;">Добавить задание</h3>
                 <input type="text" id="t-title" placeholder="Название (Подписка на канал)">
                 <input type="text" id="t-url" placeholder="Ссылка (https://t.me/...)">
+                <!-- НОВОЕ ПОЛЕ ДЛЯ ID КАНАЛА -->
+                <input type="text" id="t-chat-id" placeholder="ID канала (@channel_name или -100...)">
                 <input type="number" id="t-reward" placeholder="Награда (в NEXA)">
                 <button class="btn-gold" onclick="addTask()">Добавить</button>
             </div>
@@ -264,7 +258,6 @@
         </div>
     </div>
 
-    <!-- НАВИГАЦИЯ -->
     <div class="bottom-nav">
         <div class="nav-item active" onclick="switchTab('mining', this)"><div class="nav-icon">⚒️</div><div data-lang="nav_mine">Майнинг</div></div>
         <div class="nav-item" onclick="switchTab('buy', this)"><div class="nav-icon">🪙</div><div data-lang="nav_buy">Обмен</div></div>
@@ -475,7 +468,6 @@
             document.getElementById('page-indicator').innerText = `${currentLevelPage} / ${TOTAL_PAGES}`;
         }
 
-        // ================= ЗАДАНИЯ =================
         async function loadTasks() {
             let res = await fetch(API_URL + '/api/tasks', { headers: HEADERS });
             let data = await res.json();
@@ -505,11 +497,11 @@
                 tg.showAlert(currentLang === 'ru' ? "Награда получена!" : "Reward claimed!");
                 loadTasks(); loadData();
             } else {
-                tg.showAlert((await res.json()).detail || "Error");
+                let err = await res.json();
+                tg.showAlert(err.detail || "Error");
             }
         }
 
-        // ================= АДМИН: ЗАДАНИЯ =================
         async function loadAdminTasks() {
             let res = await fetch(API_URL + '/api/admin/tasks', { headers: HEADERS });
             let data = await res.json();
@@ -517,7 +509,7 @@
             data.forEach(task => {
                 html += `<div class="task-card">
                     <div class="task-title">${task.title} (+${task.reward} NEXA)</div>
-                    <div style="font-size:12px; color:#aaa; word-break:break-all;">${task.url}</div>
+                    <div style="font-size:12px; color:#aaa; word-break:break-all;">Ссылка: ${task.url}<br>ID канала: ${task.chat_id || 'Не задан (проверки нет)'}</div>
                     <button class="btn-red" style="margin-top:5px; padding:8px;" onclick="deleteTask(${task.id})">${t('admin_tasks_delete')}</button>
                 </div>`;
             });
@@ -527,11 +519,13 @@
         async function addTask() {
             let title = document.getElementById('t-title').value.trim();
             let url = document.getElementById('t-url').value.trim();
+            let chat_id = document.getElementById('t-chat-id').value.trim();
             let reward = parseFloat(document.getElementById('t-reward').value);
             if(!title || !url || !reward) return tg.showAlert("Заполните все поля");
-            await fetch(API_URL + '/api/admin/tasks/add', { method: 'POST', headers: HEADERS, body: JSON.stringify({ title, url, reward }) });
+            await fetch(API_URL + '/api/admin/tasks/add', { method: 'POST', headers: HEADERS, body: JSON.stringify({ title, url, chat_id, reward }) });
             document.getElementById('t-title').value = '';
             document.getElementById('t-url').value = '';
+            document.getElementById('t-chat-id').value = '';
             document.getElementById('t-reward').value = '';
             loadAdminTasks();
         }
@@ -542,7 +536,6 @@
             loadAdminTasks();
         }
 
-        // ================= ОСТАЛЬНОЕ =================
         function buyToken() { tg.openLink(`https://app.ston.fi/swap?ft=TON&tt=${TOKEN_CONTRACT}`); }
         async function handleFarm() {
             let ep = userData.is_farming ? '/api/claim' : '/api/start_farm';
