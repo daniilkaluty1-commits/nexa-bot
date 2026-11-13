@@ -11,25 +11,19 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
         body { background-color: #050505; color: white; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
         .bg-village { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(to bottom, rgba(5, 10, 20, 0.6), rgba(5, 5, 5, 1)), url('https://images.unsplash.com/photo-1543872084-c7bd3822856f?q=80&w=1000&auto=format&fit=crop'); background-size: cover; background-position: center; z-index: -2; filter: brightness(0.6) contrast(1.2); }
-        
-        /* Оверлеи блокировки */
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,5,0.95); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
         .overlay h1 { color: #e74c3c; font-size: 28px; margin-bottom: 15px; text-transform: uppercase; }
         .overlay p { color: #aaa; font-size: 14px; }
-
         .snow-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: hidden; }
         .snowflake { position: absolute; top: -10px; background: white; border-radius: 50%; opacity: 0.8; filter: blur(1px); animation: fall linear infinite; }
         @keyframes fall { to { transform: translateY(105vh); } }
-        
         .screen { display: none; flex: 1; flex-direction: column; padding: 20px; overflow-y: auto; padding-bottom: 100px; z-index: 10; }
         .screen.active { display: flex; }
-        
         .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
         .top-left { display: flex; align-items: center; gap: 10px; }
         .avatar { width: 32px; height: 32px; border-radius: 50%; border: 1px solid #D4AF37; background: #111; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #D4AF37; }
         .app-title { font-size: 18px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; background: linear-gradient(180deg, #FFFFFF 0%, #D4AF37 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .lang-btn { background: rgba(212, 175, 55, 0.2); border: 1px solid #D4AF37; color: #D4AF37; padding: 5px 10px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 12px; }
-        
         .mining-container { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-top: -20px; }
         .coin-wrapper { position: relative; width: 250px; height: 250px; display: flex; justify-content: center; align-items: center; margin-bottom: 30px; }
         .coin-glow { position: absolute; width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle, rgba(212, 175, 55, 0.3) 0%, transparent 60%); animation: glowPulse 3s ease-in-out infinite alternate; }
@@ -39,11 +33,9 @@
         .collect-btn { background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(212, 175, 55, 0.5) 100%); backdrop-filter: blur(10px); color: #fff; font-weight: 800; font-size: 18px; padding: 18px 40px; border-radius: 30px; border: 1px solid rgba(212, 175, 55, 0.5); width: 100%; max-width: 320px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2); transition: 0.2s; }
         .collect-btn:active { transform: scale(0.95); }
         .collect-btn.farming { background: rgba(20, 20, 20, 0.6); border: 1px solid #555; color: #888; box-shadow: none; }
-        
         .balance-title { font-size: 12px; color: #999; text-align: center; margin-top: 10px; text-transform: uppercase; letter-spacing: 2px;}
         .balance-value { font-size: 46px; font-weight: 900; text-align: center; color: #D4AF37; text-shadow: 0 0 20px rgba(212,175,55,0.3); }
         .real-balance { font-size: 12px; text-align: center; color: #2ecc71; margin-top: 5px; font-weight: 600;}
-        
         .level-box { margin-top: 25px; width: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); padding: 15px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); }
         .level-top { display: flex; justify-content: space-between; font-size: 12px; color: #aaa; margin-bottom: 8px; font-weight: 600;}
         .progress-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
@@ -53,7 +45,6 @@
         .stat-card-title { font-size: 11px; color: #999; margin-bottom: 5px; text-transform: uppercase;}
         .stat-card-val { font-size: 18px; font-weight: 800; color: #fff; }
         .stat-card-val span { font-size: 12px; color: #D4AF37; }
-        
         .level-nav { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 15px; margin-bottom: 15px; }
         .level-arrow { background: rgba(212, 175, 55, 0.2); border: 1px solid #D4AF37; color: #D4AF37; font-size: 20px; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; }
         .level-arrow:active { transform: scale(0.9); background: #D4AF37; color: #000; }
@@ -62,29 +53,24 @@
         .lvl-col { display: flex; flex-direction: column; gap: 4px;}
         .lvl-title { font-weight: 800; color: #D4AF37; }
         .lvl-sub { font-size: 11px; color: #aaa; }
-        
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: rgba(10, 10, 10, 0.95); border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-around; align-items: center; z-index: 100; backdrop-filter: blur(20px); padding: 0 5px;}
         .nav-item { display: flex; flex-direction: column; align-items: center; color: #666; font-size: 9px; gap: 4px; cursor: pointer; transition: 0.2s; width: 16%;}
         .nav-item.active { color: #D4AF37; }
         .nav-icon { font-size: 18px; }
-        
         .input-group { display: flex; flex-direction: column; gap: 8px; background: rgba(0,0,0,0.4); padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; backdrop-filter: blur(10px);}
         .input-group input { background: rgba(255,255,255,0.05); border: 1px solid rgba(212, 175, 55, 0.3); padding: 15px; border-radius: 12px; color: white; font-size: 16px; outline: none; }
         .btn-gold { background: linear-gradient(135deg, #D4AF37, #FFDF00); color: #000; padding: 12px; border-radius: 12px; border: none; font-weight: 800; font-size: 14px; cursor: pointer; width: 100%; box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3); margin-top: 5px;}
         .btn-blue { background: linear-gradient(135deg, #0088cc, #0055ff); color: #fff; padding: 12px; border-radius: 12px; border: none; font-weight: 800; font-size: 14px; cursor: pointer; width: 100%; box-shadow: 0 5px 15px rgba(0, 136, 204, 0.3); margin-top: 5px;}
         .btn-red { background: linear-gradient(135deg, #e74c3c, #c0392b); color: #fff; padding: 12px; border-radius: 12px; border: none; font-weight: 800; font-size: 14px; cursor: pointer; width: 100%; box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3); margin-top: 5px;}
-        
         .history-item { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; border: 1px solid rgba(255,255,255,0.05);}
         .status-pending { color: #f1c40f; }
         .status-approved { color: #2ecc71; }
         .status-rejected { color: #e74c3c; }
-        
         .admin-tabs { display: flex; gap: 5px; margin-bottom: 15px; flex-wrap: wrap; }
         .admin-tab { flex: 1; text-align: center; padding: 10px 5px; background: rgba(255,255,255,0.1); border-radius: 10px; font-size: 11px; cursor: pointer; }
         .admin-tab.active { background: #D4AF37; color: #000; font-weight: bold; }
         .admin-section { display: none; }
         .admin-section.active { display: block; }
-        
         .user-card { background: rgba(212, 175, 55, 0.05); border: 1px solid #D4AF37; border-radius: 15px; padding: 15px; margin-bottom: 15px; }
         .user-info-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; }
         .user-info-row span:first-child { color: #888; }
@@ -96,7 +82,6 @@
     <div class="bg-village"></div>
     <div class="snow-container" id="snow-container"></div>
 
-    <!-- ОВЕРЛЕИ БЛОКИРОВКИ -->
     <div id="overlay-banned" class="overlay">
         <h1 data-lang="banned_title">Вы заблокированы</h1>
         <p data-lang="banned_desc">Ваш аккаунт был забанен администрацией. Если вы считаете это ошибкой, свяжитесь с поддержкой.</p>
@@ -106,7 +91,6 @@
         <p data-lang="maint_desc">Мы обновляем ферму. Пожалуйста, зайдите чуть позже.</p>
     </div>
 
-    <!-- ЭКРАН 1: МАЙНИНГ -->
     <div id="screen-mining" class="screen active">
         <div class="top-bar">
             <div class="top-left">
@@ -115,7 +99,6 @@
             </div>
             <button class="lang-btn" onclick="toggleLang()" id="lang-btn">EN</button>
         </div>
-        
         <div class="mining-container">
             <div class="coin-wrapper"><div class="coin-glow"></div><img src="logo.jpg" class="nexa-coin" alt="NEXA"></div>
             <button class="collect-btn" id="action-btn" onclick="handleFarm()"><span id="btn-text">Начать майнинг</span><span>›</span></button>
@@ -134,7 +117,6 @@
         </div>
     </div>
 
-    <!-- ЭКРАН 2: ОБМЕН -->
     <div id="screen-buy" class="screen">
         <h2 style="color: #D4AF37; margin-bottom: 20px;" data-lang="buy_title">Купить NEXA</h2>
         <div class="input-group" style="text-align: center;">
@@ -147,44 +129,35 @@
         </div>
     </div>
 
-    <!-- ЭКРАН 3: УРОВНИ -->
     <div id="screen-levels" class="screen">
         <h2 style="color: #D4AF37; margin-bottom: 10px;" data-lang="levels_title">Уровни</h2>
         <div style="font-size: 12px; color: #aaa; margin-bottom: 15px;" data-lang="levels_desc">Уровень зависит от холда NEXA на кошельке.</div>
-        
         <div class="level-nav">
             <button class="level-arrow" onclick="changeLevelPage(-1)">❮</button>
             <div style="font-weight:bold; color:#D4AF37;" id="page-indicator">1 / 20</div>
             <button class="level-arrow" onclick="changeLevelPage(1)">❯</button>
         </div>
-
         <div id="levels-list"></div>
     </div>
 
-    <!-- ЭКРАН 4: ВЫВОД -->
     <div id="screen-wallet" class="screen">
         <h2 style="color: #D4AF37; margin-bottom: 10px;" data-lang="withdraw_title">Вывод средств</h2>
         <div style="font-size: 12px; color: #aaa; margin-bottom: 15px;" data-lang="withdraw_desc">Для проверки холда привяжите кошелек TON.</div>
-        
         <div id="ton-connect" style="display: flex; justify-content: center; margin-bottom: 15px;"></div>
-
         <div class="input-group">
             <label data-lang="withdraw_addr">Куда вывести NEXA? (Введите адрес)</label>
             <input type="text" id="withdraw-wallet" placeholder="UQD... / EQC...">
         </div>
-
         <div class="input-group">
             <label data-lang="withdraw_amt">Сумма вывода (Мин. 50,000 NEXA)</label>
             <input type="number" id="w-amount" value="50000">
             <div style="font-size: 11px; color: #e74c3c; margin-bottom: 5px;" data-lang="withdraw_hold">* Для вывода нужно иметь 20% от суммы в токенах на кошельке.</div>
             <button class="btn-gold" onclick="requestWithdraw()" data-lang="withdraw_btn">Запросить вывод</button>
         </div>
-        
         <h3 style="margin-top: 20px; margin-bottom: 10px; font-size: 14px; color: #aaa;" data-lang="history_title">История выводов</h3>
         <div id="history-list"></div>
     </div>
 
-    <!-- ЭКРАН 5: ДРУЗЬЯ -->
     <div id="screen-friends" class="screen">
         <h2 style="color: #D4AF37; margin-bottom: 20px;" data-lang="friends_title">Друзья</h2>
         <div class="input-group">
@@ -193,7 +166,6 @@
         </div>
     </div>
 
-    <!-- ЭКРАН 6: АДМИНКА -->
     <div id="screen-admin" class="screen">
         <h2 style="color: #D4AF37; margin-bottom: 15px;" data-lang="admin_title">Админ-панель</h2>
         <div class="admin-tabs">
@@ -213,7 +185,7 @@
         </div>
         <div id="admin-referrals" class="admin-section">
             <div class="input-group" style="padding: 10px;">
-                <input type="text" id="ref-search" placeholder="ID юзера">
+                <input type="text" id="ref-search" placeholder="TG ID">
                 <button class="btn-blue" onclick="loadReferrals()" data-lang="search_btn">Найти</button>
             </div>
             <div id="referral-list"></div>
@@ -239,7 +211,6 @@
         </div>
     </div>
 
-    <!-- НАВИГАЦИЯ -->
     <div class="bottom-nav">
         <div class="nav-item active" onclick="switchTab('mining', this)"><div class="nav-icon">⚒️</div><div data-lang="nav_mine">Майнинг</div></div>
         <div class="nav-item" onclick="switchTab('buy', this)"><div class="nav-icon">🪙</div><div data-lang="nav_buy">Обмен</div></div>
@@ -282,7 +253,9 @@
                 search_btn: "Найти", maintenance: "Технические работы", base_income: "Базовая ставка (в сек)",
                 level_bonus: "Бонус за уровень (0.05 = +5%)", save_btn: "Сохранить настройки",
                 nav_mine: "Майнинг", nav_buy: "Обмен", nav_lvl: "Уровни", nav_wd: "Вывод", nav_fr: "Друзья", nav_adm: "Админ",
-                hold_req: "Холд:", inc_day: "NEXA/день:", mult: "Множ:"
+                hold_req: "Холд:", inc_day: "NEXA/день:", mult: "Множ:",
+                no_txs: "Нет транзакций", reset_wallet: "Сбросить кошелек", ban: "Забанить", unban: "Разбанить",
+                make_admin: "Выдать админку", remove_admin: "Снять админку", reset_wallet_confirm: "Отвязать кошелек?"
             },
             en: {
                 banned_title: "You are banned", banned_desc: "Your account has been banned by the administration.",
@@ -300,7 +273,9 @@
                 search_btn: "Search", maintenance: "Maintenance Mode", base_income: "Base Rate (per sec)",
                 level_bonus: "Level Bonus (0.05 = +5%)", save_btn: "Save Settings",
                 nav_mine: "Mining", nav_buy: "Exchange", nav_lvl: "Levels", nav_wd: "Withdraw", nav_fr: "Friends", nav_adm: "Admin",
-                hold_req: "Hold:", inc_day: "NEXA/day:", mult: "Mult:"
+                hold_req: "Hold:", inc_day: "NEXA/day:", mult: "Mult:",
+                no_txs: "No txs", reset_wallet: "Reset Wallet", ban: "Ban", unban: "Unban",
+                make_admin: "Make Admin", remove_admin: "Remove Admin", reset_wallet_confirm: "Reset wallet?"
             }
         };
 
@@ -310,6 +285,10 @@
             currentLang = currentLang === 'ru' ? 'en' : 'ru';
             localStorage.setItem('nexa_lang', currentLang);
             translateUI(); updateUI(); renderLevels();
+            // Обновляем динамические части, если открыта админка
+            if(document.getElementById('screen-admin').classList.contains('active')) {
+                loadAdminData();
+            }
         }
 
         function translateUI() {
@@ -371,7 +350,6 @@
             try {
                 let res = await fetch(API_URL + '/api/login', { method: 'POST', headers: HEADERS });
                 
-                // ОБРАБОТКА БЛОКИРОВОК
                 if (res.status === 403) {
                     let err = await res.json();
                     if (err.detail === "banned") {
@@ -498,9 +476,9 @@
         }
 
         function shareLink() {
-            // Генерируем реферальную ссылку (замени твой_бот на юзернейм бота)
             const refLink = `https://t.me/твой_бот/app?startapp=${userData.user_id}`;
-            tg.openTelegramLink(`https://t.me/share/url?url=${refLink}&text=${encodeURIComponent('Join NEXA and farm crypto!')}`);
+            const txt = currentLang === 'ru' ? 'Заходи в NEXA и фарми крипту!' : 'Join NEXA and farm crypto!';
+            tg.openTelegramLink(`https://t.me/share/url?url=${refLink}&text=${encodeURIComponent(txt)}`);
         }
 
         // ================= АДМИНКА =================
@@ -510,6 +488,8 @@
             let res = await fetch(API_URL + '/api/admin/withdrawals', { headers: HEADERS });
             let data = await res.json();
             let html = '';
+            let txPlaceholder = currentLang === 'ru' ? 'Вставьте ссылку на транзакцию...' : 'Paste transaction link...';
+            
             data.forEach(w => {
                 html += `<div class="user-card">
                     <div class="user-info-row"><span>ID:</span><span>${w.user_id}</span></div>
@@ -518,6 +498,9 @@
                         <span style="color:#D4AF37;">Wallet (click):</span>
                         <span style="color:#D4AF37; font-size:11px; text-decoration:underline;">${w.wallet}</span>
                     </div>
+                    
+                    <input type="text" id="tx-${w.id}" placeholder="${txPlaceholder}" style="width:100%; background:#111; border:1px solid #333; color:white; padding:8px; border-radius:5px; margin-top:10px; font-size:12px;">
+                    
                     <div style="margin-top: 10px; display:flex; gap: 10px;">
                         <button class="btn-gold" onclick="adminAction(${w.id}, 'approve')">✅ Pay</button>
                         <button class="btn-red" onclick="adminAction(${w.id}, 'reject')">❌ Reject</button>
@@ -566,7 +549,24 @@
         }
 
         async function adminAction(id, act) {
-            await fetch(API_URL + '/api/admin/action', { method: 'POST', headers: HEADERS, body: JSON.stringify({ wd_id: id, action: act }) });
+            let txHash = "";
+            if (act === "approve") {
+                txHash = document.getElementById(`tx-${id}`).value.trim();
+                if (!txHash) {
+                    return tg.showAlert(currentLang === 'ru' ? "Вставьте ссылку на транзакцию перед одобрением!" : "Paste transaction link before approving!");
+                }
+            }
+            
+            let res = await fetch(API_URL + '/api/admin/action', { 
+                method: 'POST', 
+                headers: HEADERS, 
+                body: JSON.stringify({ wd_id: id, action: act, tx_hash: txHash }) 
+            });
+            
+            if (!res.ok) {
+                let e = await res.json();
+                return tg.showAlert(e.detail || "Error");
+            }
             loadWithdrawals();
         }
 
@@ -577,7 +577,10 @@
             let data = await res.json();
             if(!data.found) return document.getElementById('user-result').innerHTML = '<div style="color:#e74c3c; text-align:center;">Not found</div>';
             
-            let txsHtml = data.txs.map(t => `<div class="tx-item">${t.time}: ${t.text}</div>`).join('') || '<div class="tx-item">No txs</div>';
+            let txsHtml = data.txs.map(t => `<div class="tx-item">${t.time}: ${t.text}</div>`).join('') || `<div class="tx-item">${t('no_txs')}</div>`;
+            
+            let banBtn = data.is_banned ? t('unban') : t('ban');
+            let admBtn = data.is_admin ? t('remove_admin') : t('make_admin');
             
             let html = `<div class="user-card">
                 <div class="user-info-row"><span>TG ID:</span><span>${data.id}</span></div>
@@ -594,11 +597,11 @@
                     <button class="btn-red" style="margin:0;" onclick="editBalance(${data.id}, false)">-</button>
                 </div>
                 <div style="display:flex; gap:5px; margin-top: 10px;">
-                    <button class="btn-red" onclick="toggleBan(${data.id})">${data.is_banned ? 'Unban' : 'Ban'}</button>
-                    <button class="btn-blue" onclick="toggleAdmin(${data.id}, ${!data.is_admin})">${data.is_admin ? 'Remove Admin' : 'Make Admin'}</button>
+                    <button class="btn-red" onclick="toggleBan(${data.id})">${banBtn}</button>
+                    <button class="btn-blue" onclick="toggleAdmin(${data.id}, ${!data.is_admin})">${admBtn}</button>
                 </div>
                 <div style="display:flex; gap:5px; margin-top: 10px;">
-                    <button class="btn-red" style="background:#e67e22; box-shadow:none;" onclick="resetWallet(${data.id})">Reset Wallet</button>
+                    <button class="btn-red" style="background:#e67e22; box-shadow:none;" onclick="resetWallet(${data.id})">${t('reset_wallet')}</button>
                 </div>
                 <div style="margin-top: 15px; font-size: 11px; color:#aaa;">History:</div>${txsHtml}
             </div>`;
@@ -606,7 +609,7 @@
         }
 
         async function resetWallet(id) {
-            if(!confirm('Reset wallet?')) return;
+            if(!confirm(t('reset_wallet_confirm'))) return;
             await fetch(API_URL + '/api/admin/reset_wallet', { method: 'POST', headers: HEADERS, body: JSON.stringify({ target_id: id }) });
             searchUser();
         }
