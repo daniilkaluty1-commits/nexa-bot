@@ -24,6 +24,9 @@ class User(Base):
     is_admin = Column(Boolean, default=False)
     ip_address = Column(String, nullable=True)
     referrer_id = Column(Integer, nullable=True)
+    # Новые поля для времени
+    play_time = Column(Integer, default=0) # в секундах
+    last_heartbeat = Column(DateTime, nullable=True)
     
 class Withdrawal(Base):
     __tablename__ = "withdrawals"
@@ -53,9 +56,12 @@ class Task(Base):
     __tablename__ = "tasks"
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String)
-    url = Column(String)
-    chat_id = Column(String, nullable=True) # НОВОЕ ПОЛЕ: @channel или -100...
+    url = Column(String, nullable=True)      # Для подписки
+    chat_id = Column(String, nullable=True)  # Больше не используется, но оставим
     reward = Column(Float)
+    # Новые поля для типов заданий
+    task_type = Column(String, default="subscribe") # subscribe, coins, time, level
+    target_value = Column(Float, default=0.0)       # Сколько нужно накопить/отыграть
 
 class UserTask(Base):
     __tablename__ = "user_tasks"
@@ -66,18 +72,23 @@ class UserTask(Base):
 
 Base.metadata.create_all(bind=engine)
 
-# Миграция
+# Безопасная миграция базы
 try:
     with engine.begin() as conn:
         conn.execute(text("ALTER TABLE users ADD COLUMN referrer_id INTEGER"))
-except OperationalError:
-    pass
+except OperationalError: pass
 
 try:
     with engine.begin() as conn:
-        conn.execute(text("ALTER TABLE tasks ADD COLUMN chat_id VARCHAR"))
-except OperationalError:
-    pass
+        conn.execute(text("ALTER TABLE users ADD COLUMN play_time INTEGER DEFAULT 0"))
+        conn.execute(text("ALTER TABLE users ADD COLUMN last_heartbeat DATETIME"))
+except OperationalError: pass
+
+try:
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE tasks ADD COLUMN task_type VARCHAR DEFAULT 'subscribe'"))
+        conn.execute(text("ALTER TABLE tasks ADD COLUMN target_value FLOAT DEFAULT 0.0"))
+except OperationalError: pass
 
 db = SessionLocal()
 if not db.query(Setting).first():
