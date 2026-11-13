@@ -24,9 +24,9 @@ class User(Base):
     is_admin = Column(Boolean, default=False)
     ip_address = Column(String, nullable=True)
     referrer_id = Column(Integer, nullable=True)
-    # Новые поля для времени
-    play_time = Column(Integer, default=0) # в секундах
+    play_time = Column(Integer, default=0)
     last_heartbeat = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow) # НОВОЕ ПОЛЕ
     
 class Withdrawal(Base):
     __tablename__ = "withdrawals"
@@ -56,12 +56,11 @@ class Task(Base):
     __tablename__ = "tasks"
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String)
-    url = Column(String, nullable=True)      # Для подписки
-    chat_id = Column(String, nullable=True)  # Больше не используется, но оставим
+    url = Column(String, nullable=True)
+    chat_id = Column(String, nullable=True)
     reward = Column(Float)
-    # Новые поля для типов заданий
-    task_type = Column(String, default="subscribe") # subscribe, coins, time, level
-    target_value = Column(Float, default=0.0)       # Сколько нужно накопить/отыграть
+    task_type = Column(String, default="subscribe")
+    target_value = Column(Float, default=0.0)
 
 class UserTask(Base):
     __tablename__ = "user_tasks"
@@ -82,6 +81,11 @@ try:
     with engine.begin() as conn:
         conn.execute(text("ALTER TABLE users ADD COLUMN play_time INTEGER DEFAULT 0"))
         conn.execute(text("ALTER TABLE users ADD COLUMN last_heartbeat DATETIME"))
+except OperationalError: pass
+
+try:
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE users ADD COLUMN created_at DATETIME"))
 except OperationalError: pass
 
 try:
