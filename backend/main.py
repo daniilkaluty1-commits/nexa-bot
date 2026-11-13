@@ -578,5 +578,41 @@ def admin_del_task(req: AdminDelTask, x_init_data: str = Header(None)):
         db.query(UserTask).filter(UserTask.task_id == task.id).delete()
         db.delete(task)
         db.commit()
+        # Вставь это в backend/main.py после эндпоинта /api/admin/stats
+
+@app.get("/api/admin/users_list")
+def admin_users_list(page: int = 1, filter_by: str = "all", x_init_data: str = Header(None)):
+    if not check_admin(x_init_data): raise HTTPException(status_code=403)
+    
+    db = SessionLocal()
+    per_page = 50
+    query = db.query(User)
+    
+    now = datetime.utcnow()
+    if filter_by == "online":
+        query = query.filter(User.last_heartbeat >= now - timedelta(minutes=5))
+    elif filter_by == "farming":
+        query = query.filter(User.is_farming == True)
+        
+    total_users = query.count()
+    total_pages = (total_users + per_page - 1) // per_page
+    if total_pages == 0: total_pages = 1
+    
+    users = query.order_by(User.id.desc()).offset((page - 1) * per_page).limit(per_page).all()
+    
+    res = []
+    for u in users:
+        res.append({
+            "id": u.id, 
+            "username": u.username or "-", 
+            "balance": u.balance, 
+            "level": u.level, 
+            "is_farming": u.is_farming, 
+            "play_time": u.play_time,
+            "is_banned": u.is_banned,
+            "referrer_id": u.referrer_id or "-"
+        })
+    db.close()
+    return {"users": res, "total_pages": total_pages, "total_users": total_users, "current_page": page}
     db.close()
     return {"status": "ok"}
