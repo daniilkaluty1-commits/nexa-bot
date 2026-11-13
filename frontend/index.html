@@ -11,36 +11,13 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
         body { background-color: #050505; color: white; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
         
-        /* ФОН (Твоя картинка) */
-        .bg-village { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background-image: url('bg.jpg'); /* Назови картинку bg.jpg и закинь в папку frontend */
-            background-size: cover; 
-            background-position: center; 
-            z-index: -3; 
-        }
-
-        /* ПОДЗАТЕМНЕНИЕ ФОНА (Чтобы текст читался) */
-        .bg-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.55); /* Уровень затемнения */
-            z-index: -2;
-        }
-
-        /* МИГАЮЩИЙ ФОНАРЬ */
-        .lamp-flicker {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1;
-            pointer-events: none;
-            /* Имитация света, который падает на экран */
-            background: radial-gradient(circle at 50% 50%, rgba(255, 180, 50, 0.15) 0%, transparent 80%);
-            animation: flicker 12s infinite;
-        }
-
+        .bg-village { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('bg.jpg'); background-size: cover; background-position: center; z-index: -3; }
+        .bg-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.55); z-index: -2; }
+        .lamp-flicker { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; background: radial-gradient(circle at 50% 50%, rgba(255, 180, 50, 0.15) 0%, transparent 80%); animation: flicker 12s infinite; }
         @keyframes flicker {
-            0%, 10%, 25%, 45%, 60%, 100% { opacity: 1; } /* Светло */
-            12%, 48%, 62% { opacity: 0.6; } /* Чуть темнеет */
-            13%, 49%, 63% { opacity: 0.2; } /* Резкий провал в темноту (сам щелчок) */
+            0%, 10%, 25%, 45%, 60%, 100% { opacity: 1; }
+            12%, 48%, 62% { opacity: 0.6; }
+            13%, 49%, 63% { opacity: 0.2; }
         }
 
         .snow-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: hidden; }
@@ -117,14 +94,13 @@
         .admin-section.active { display: block; }
         
         .user-card { background: rgba(0,0,0,0.6); border: 1px solid #D4AF37; border-radius: 15px; padding: 15px; margin-bottom: 15px; backdrop-filter: blur(5px);}
-        .user-info-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; }
+        .user-info-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; padding: 4px 0;}
         .user-info-row span:first-child { color: #aaa; }
         .user-info-row span:last-child { font-weight: bold; word-break: break-all; max-width: 60%; text-align: right;}
         .tx-item { font-size: 10px; color: #aaa; margin-top: 5px; border-top: 1px dashed #333; padding-top: 5px; }
     </style>
 </head>
 <body>
-    <!-- ФОН, ЗАТЕМНЕНИЕ, ФОНАРЬ И СНЕГ -->
     <div class="bg-village"></div>
     <div class="bg-overlay"></div>
     <div class="lamp-flicker"></div>
@@ -226,7 +202,7 @@
         <div id="admin-withdrawals" class="admin-section active"><div id="admin-list"></div></div>
         <div id="admin-users" class="admin-section">
             <div class="input-group" style="padding: 10px;">
-                <input type="text" id="search-query" placeholder="TG ID / Wallet">
+                <input type="text" id="search-query" placeholder="Введите TG ID или адрес кошелька...">
                 <button class="btn-blue" onclick="searchUser()" data-lang="search_btn">Найти</button>
             </div>
             <div id="user-result"></div>
@@ -376,7 +352,7 @@
         }
 
         function copyText(text) {
-            navigator.clipboard.writeText(text).then(() => tg.showAlert(currentLang === 'ru' ? "Адрес скопирован!" : "Address copied!"))
+            navigator.clipboard.writeText(text).then(() => tg.showAlert(currentLang === 'ru' ? "Скопировано!" : "Copied!"))
             .catch(() => tg.showAlert("Error"));
         }
 
@@ -536,14 +512,16 @@
             let res = await fetch(API_URL + '/api/admin/withdrawals', { headers: HEADERS });
             let data = await res.json();
             let html = '';
-            let txPlaceholder = currentLang === 'ru' ? 'Вставьте ссылку на транзакцию...' : 'Paste transaction link...';
+            let txPlaceholder = currentLang === 'ru' ? 'Ссылка на транзакцию...' : 'Transaction link...';
             
             data.forEach(w => {
                 html += `<div class="user-card">
-                    <div class="user-info-row"><span>ID:</span><span>${w.user_id}</span></div>
+                    <div class="user-info-row" onclick="copyText('${w.user_id}')" style="cursor:pointer;" title="Копировать ID">
+                        <span>ID (нажми):</span><span style="text-decoration:underline;">${w.user_id}</span>
+                    </div>
                     <div class="user-info-row"><span>Sum:</span><span>${w.amount} NEXA</span></div>
-                    <div class="user-info-row" onclick="copyText('${w.wallet}')" style="cursor:pointer;" title="Copy">
-                        <span style="color:#D4AF37;">Wallet (click):</span>
+                    <div class="user-info-row" onclick="copyText('${w.wallet}')" style="cursor:pointer;" title="Копировать кошелек">
+                        <span style="color:#D4AF37;">Dest Wallet (нажми):</span>
                         <span style="color:#D4AF37; font-size:11px; text-decoration:underline;">${w.wallet}</span>
                     </div>
                     
@@ -565,8 +543,8 @@
             let html = '';
             data.forEach(r => {
                 html += `<div class="history-item" style="flex-direction:column; align-items:flex-start;">
-                    <div style="color:#D4AF37; font-weight:bold; margin-bottom:5px;">Пригласил (ID): ${r.referrer_id}</div>
-                    <div style="font-size:11px; color:#fff; margin-bottom:2px;">Привел юзера (ID): ${r.referred_id}</div>
+                    <div onclick="copyText('${r.referrer_id}')" style="color:#D4AF37; font-weight:bold; margin-bottom:5px; cursor:pointer; text-decoration:underline;">Пригласил (ID): ${r.referrer_id}</div>
+                    <div onclick="copyText('${r.referred_id}')" style="font-size:11px; color:#fff; margin-bottom:2px; cursor:pointer; text-decoration:underline;">Привел юзера (ID): ${r.referred_id}</div>
                     <div style="display:flex; justify-content:space-between; width:100%; font-size:10px; color:#aaa; margin-top:5px;">
                         <span>${r.date}</span>
                         <span style="color:#2ecc71; font-weight:bold;">+${r.amount.toFixed(2)} NEXA</span>
@@ -585,7 +563,7 @@
                 let st = w.status === 'pending' ? 'Pending' : (w.status === 'approved' ? 'Paid' : 'Rejected');
                 let stColor = w.status === 'pending' ? '#f1c40f' : (w.status === 'approved' ? '#2ecc71' : '#e74c3c');
                 html += `<div class="history-item" style="flex-direction:column; align-items:flex-start;">
-                    <div style="color:#D4AF37; font-weight:bold; margin-bottom:5px;">ID: ${w.user_id}</div>
+                    <div onclick="copyText('${w.user_id}')" style="color:#D4AF37; font-weight:bold; margin-bottom:5px; cursor:pointer; text-decoration:underline;">ID: ${w.user_id}</div>
                     <div onclick="copyText('${w.wallet}')" style="font-size:10px; color:#aaa; margin-bottom:5px; cursor:pointer; text-decoration:underline;" title="Copy">${w.date} | Address: ${w.wallet}</div>
                     <div style="display:flex; justify-content:space-between; width:100%;">
                         <span>${w.amount} NEXA</span>
@@ -631,11 +609,24 @@
             let admBtn = data.is_admin ? t('remove_admin') : t('make_admin');
             
             let html = `<div class="user-card">
-                <div class="user-info-row"><span>TG ID:</span><span>${data.id}</span></div>
-                <div class="user-info-row"><span>Username:</span><span>${data.username || '-'}</span></div>
-                <div class="user-info-row"><span>IP:</span><span>${data.ip || '-'}</span></div>
-                <div class="user-info-row"><span>Referrer:</span><span>${data.referrer_id || '-'}</span></div>
-                <div class="user-info-row"><span>Wallet:</span><span>${data.wallet || '-'}</span></div>
+                <div class="user-info-row" onclick="copyText('${data.id}')" style="cursor:pointer;" title="Copy ID">
+                    <span>TG ID (нажми):</span><span style="text-decoration:underline;">${data.id}</span>
+                </div>
+                <div class="user-info-row" onclick="copyText('${data.username || '-'}')" style="cursor:pointer;" title="Copy Username">
+                    <span>Username (нажми):</span><span style="text-decoration:underline;">${data.username || '-'}</span>
+                </div>
+                <div class="user-info-row" onclick="copyText('${data.ip || '-'}')" style="cursor:pointer;" title="Copy IP">
+                    <span>IP (нажми):</span><span style="text-decoration:underline;">${data.ip || '-'}</span>
+                </div>
+                <div class="user-info-row" onclick="copyText('${data.referrer_id || '-'}')" style="cursor:pointer;" title="Copy Referrer">
+                    <span>Referrer (нажми):</span><span style="text-decoration:underline;">${data.referrer_id || '-'}</span>
+                </div>
+                <div class="user-info-row" onclick="copyText('${data.wallet || '-'}')" style="cursor:pointer;" title="Copy Connected Wallet">
+                    <span style="color:#2ecc71;">TON Connect Wallet:</span><span style="color:#2ecc71; text-decoration:underline;">${data.wallet || '-'}</span>
+                </div>
+                <div class="user-info-row" onclick="copyText('${data.last_withdraw_wallet || '-'}')" style="cursor:pointer;" title="Copy Last Withdraw Wallet">
+                    <span style="color:#D4AF37;">Last Withdraw Address:</span><span style="color:#D4AF37; text-decoration:underline;">${data.last_withdraw_wallet || '-'}</span>
+                </div>
                 <div class="user-info-row"><span>Game Bal:</span><span style="color:#D4AF37;">${data.game_balance.toFixed(2)}</span></div>
                 <div class="user-info-row"><span>Hold:</span><span style="color:#2ecc71;">${data.real_balance.toFixed(2)}</span></div>
                 <div class="user-info-row"><span>Status:</span><span style="color:${data.is_banned ? '#e74c3c':'#2ecc71'}">${data.is_banned ? 'BANNED':'ACTIVE'}</span></div>
