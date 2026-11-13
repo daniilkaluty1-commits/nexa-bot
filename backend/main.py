@@ -26,21 +26,17 @@ def send_telegram_message(chat_id: int, text: str):
 
 def check_telegram_subscription(url: str, user_id: int) -> bool:
     if not url: return True
-    
     chat_id = None
     if "t.me/" in url:
         part = url.split("t.me/")[-1].split("/")[0].split("?")[0]
-        if part.startswith("+"):
-            return True 
+        if part.startswith("+"): return True 
         chat_id = "@" + part
-    elif url.startswith("@"):
-        chat_id = url
+    elif url.startswith("@"): chat_id = url
     elif url.startswith("https://t.me/"):
         part = url.split("/")[-1].split("?")[0]
         chat_id = "@" + part
 
     if not chat_id: return True
-
     try:
         api_url = f"https://api.telegram.org/bot{BOT_TOKEN}/getChatMember"
         res = requests.get(api_url, params={"chat_id": chat_id, "user_id": user_id}, timeout=5)
@@ -111,9 +107,28 @@ class AdminEditBalance(BaseModel): target_id: int; amount: float; is_add: bool
 class AdminChangeRole(BaseModel): target_id: int; is_admin: bool
 class AdminSettings(BaseModel): maintenance: bool; base_income: float; level_bonus: float
 class AdminResetWallet(BaseModel): target_id: int
-class AdminAddTask(BaseModel): title: str; url: str; reward: float
+class AdminAddTask(BaseModel): title: str; task_type: str; target_value: float; url: str; reward: float
 class AdminDelTask(BaseModel): task_id: int
 class ClaimTask(BaseModel): task_id: int
+
+@app.post("/api/heartbeat")
+def heartbeat(x_init_data: str = Header(None)):
+    tg_data, _ = verify_telegram_data(x_init_data)
+    if not tg_data: return {"status": "error"}
+    user_id = tg_data["id"]
+    
+    db = SessionLocal()
+    user = db.query(User).filter(User.id == user_id).first()
+    if user:
+        now = datetime.utcnow()
+        if user.last_heartbeat:
+            diff = (now - user.last_heartbeat).total_seconds()
+            if 10 < diff < 120: # Защита от накрутки
+                user.play_time += int(diff)
+        user.last_heartbeat = now
+        db.commit()
+    db.close()
+    return {"status": "ok"}
 
 @app.post("/api/login")
 def login(request: Request, x_init_data: str = Header(None)):
@@ -168,7 +183,8 @@ def login(request: Request, x_init_data: str = Header(None)):
         "is_farming": user.is_farming, "pending_reward": pending_reward, 
         "is_admin": user.is_admin, "price": get_token_price(),
         "maintenance": settings.maintenance,
-        "base_income": settings.base_income, "level_bonus": settings.level_bonus
+        "base_income": settings.base_income, "level_bonus": settings.level_bonus,
+        "play_time": user.play_time
     }
     db.close()
     return res
@@ -250,7 +266,6 @@ def withdraw(req: WithdrawRequest, x_init_data: str = Header(None)):
     db = SessionLocal()
     user = db.query(User).filter(User.id == user_id).first()
     
-    # ЛИМИТ 48 ЧАСОВ
     last_wd = db.query(Withdrawal).filter(
         Withdrawal.user_id == user_id, 
         Withdrawal.status.in_(["pending", "approved"])
@@ -298,9 +313,27 @@ def get_tasks(x_init_data: str = Header(None)):
     tg_data, _ = verify_telegram_data(x_init_data)
     user_id = tg_data["id"]
     db = SessionLocal()
+    user = db.query(User).filter(User.id == user_id).first()
     all_tasks = db.query(Task).all()
     completed_task_ids = [ut.task_id for ut in db.query(UserTask).filter(UserTask.user_id == user_id).all()]
-    res = [{"id": t.id, "title": t.title, "url": t.url, "reward": t.reward, "completed": t.id in completed_task_ids} for t in all_tasks]
+    
+    res = []
+    for t in all_tasks:
+        # Считаем прогресс
+        progress = 0
+        if t.task_type == 'coins':
+            progress = user.balance
+        elif t.task_type == 'time':
+            progress = user.play_time
+        elif t.task_type == 'level':
+            progress = user.level
+            
+        res.append({
+            "id": t.id, "title": t.title, "url": t.url, "reward": t.reward,
+            "task_type": t.task_type, "target_value": t.target_value,
+            "progress": progress,
+            "completed": t.id in completed_task_ids
+        })
     db.close()
     return res
 
@@ -319,13 +352,28 @@ def claim_task(req: ClaimTask, x_init_data: str = Header(None)):
     if already_done:
         db.close()
         raise HTTPException(status_code=400, detail="Вы уже выполнили это задание")
-    
-    is_subbed = check_telegram_subscription(task.url, user_id)
-    if not is_subbed:
-        db.close()
-        raise HTTPException(status_code=400, detail="Вы не подписались на канал!")
 
     user = db.query(User).filter(User.id == user_id).first()
+
+    # ПРОВЕРКА УСЛОВИЙ ЗАДАНИЯ
+    if task.task_type == 'subscribe':
+        if not check_telegram_subscription(task.url, user_id):
+            db.close()
+            raise HTTPException(status_code=400, detail="Вы не подписались на канал!")
+    elif task.task_type == 'coins':
+        if user.balance < task.target_value:
+            db.close()
+            raise HTTPException(status_code=400, detail=f"Нужно накопить {task.target_value} монет!")
+    elif task.task_type == 'time':
+        if user.play_time < task.target_value * 60:
+            db.close()
+            raise HTTPException(status_code=400, detail=f"Нужно отыграть {task.target_value} минут!")
+    elif task.task_type == 'level':
+        if user.level < task.target_value:
+            db.close()
+            raise HTTPException(status_code=400, detail=f"Нужен {task.target_value} уровень!")
+
+    # ВЫДАЧА НАГРАДЫ
     user.balance += task.reward
     db.add(UserTask(user_id=user_id, task_id=task.id, status="completed"))
     db.commit()
@@ -414,7 +462,8 @@ def admin_search_user(query: str, x_init_data: str = Header(None)):
         "found": True, "id": user.id, "username": user.username, "ip": user.ip_address,
         "wallet": user.wallet_address, "game_balance": user.balance, "real_balance": real_bal,
         "is_banned": user.is_banned, "is_admin": user.is_admin, "txs": txs, 
-        "referrer_id": user.referrer_id, "last_withdraw_wallet": last_wd.wallet if last_wd else "-"
+        "referrer_id": user.referrer_id, "last_withdraw_wallet": last_wd.wallet if last_wd else "-",
+        "play_time": user.play_time
     }
     db.close()
     return res
@@ -493,7 +542,7 @@ def admin_get_tasks(x_init_data: str = Header(None)):
     if not check_admin(x_init_data): raise HTTPException(status_code=403)
     db = SessionLocal()
     tasks = db.query(Task).all()
-    res = [{"id": t.id, "title": t.title, "url": t.url, "reward": t.reward} for t in tasks]
+    res = [{"id": t.id, "title": t.title, "task_type": t.task_type, "target_value": t.target_value, "url": t.url, "reward": t.reward} for t in tasks]
     db.close()
     return res
 
@@ -501,7 +550,7 @@ def admin_get_tasks(x_init_data: str = Header(None)):
 def admin_add_task(req: AdminAddTask, x_init_data: str = Header(None)):
     if not check_admin(x_init_data): raise HTTPException(status_code=403)
     db = SessionLocal()
-    t = Task(title=req.title, url=req.url, chat_id="", reward=req.reward)
+    t = Task(title=req.title, task_type=req.task_type, target_value=req.target_value, url=req.url, reward=req.reward)
     db.add(t)
     db.commit()
     db.close()
