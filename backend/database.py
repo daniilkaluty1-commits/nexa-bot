@@ -13,7 +13,7 @@ Base = declarative_base()
 
 class User(Base):
     __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True) # TG ID
+    id = Column(Integer, primary_key=True, index=True)
     username = Column(String, nullable=True)
     balance = Column(Float, default=0.0)
     level = Column(Integer, default=1)
@@ -23,7 +23,7 @@ class User(Base):
     is_banned = Column(Boolean, default=False)
     is_admin = Column(Boolean, default=False)
     ip_address = Column(String, nullable=True)
-    referrer_id = Column(Integer, nullable=True) # Кто пригласил
+    referrer_id = Column(Integer, nullable=True)
     
 class Withdrawal(Base):
     __tablename__ = "withdrawals"
@@ -41,18 +41,32 @@ class Setting(Base):
     base_income = Column(Float, default=0.000057)
     level_bonus = Column(Float, default=0.05)
 
-# ТАБЛИЦА ИСТОРИИ РЕФЕРАЛОВ
 class ReferralEarning(Base):
     __tablename__ = "referral_earnings"
     id = Column(Integer, primary_key=True, index=True)
-    referrer_id = Column(Integer) # Кто получил
-    referred_id = Column(Integer) # Кто принес
-    amount = Column(Float)        # Сколько получил
+    referrer_id = Column(Integer)
+    referred_id = Column(Integer)
+    amount = Column(Float)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+# НОВЫЕ ТАБЛИЦЫ ДЛЯ ЗАДАНИЙ
+class Task(Base):
+    __tablename__ = "tasks"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String)      # Например: "Подписаться на канал"
+    url = Column(String)        # Ссылка
+    reward = Column(Float)      # Награда в NEXA
+
+class UserTask(Base):
+    __tablename__ = "user_tasks"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer)
+    task_id = Column(Integer)
+    status = Column(String, default="completed") # Выполнено
 
 Base.metadata.create_all(bind=engine)
 
-# === БЕЗОПАСНАЯ МИГРАЦИЯ ДЛЯ SQLITE ===
+# === БЕЗОПАСНАЯ МИГРАЦИЯ ===
 try:
     with engine.begin() as conn:
         conn.execute(text("ALTER TABLE users ADD COLUMN referrer_id INTEGER"))
